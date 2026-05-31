@@ -16,7 +16,8 @@ import {
   Info,
   CheckCircle,
   Clock,
-  ShieldAlert
+  ShieldAlert,
+  X
 } from 'lucide-react';
 
 import { Product, CartItem, UserProfile, DownloadProvider, Review } from './types';
@@ -89,6 +90,7 @@ export default function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [isDashboardOpen, setIsDashboardOpen] = useState<boolean>(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [activeFullImage, setActiveFullImage] = useState<string | null>(null);
 
   // Search & Filter state variables
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -203,12 +205,6 @@ export default function App() {
 
   // Add to Wishlist Toggle
   const handleToggleWishlist = (productId: string) => {
-    if (!user.isLoggedIn) {
-      triggerToast('🔒 Please setup your Account Credentials to save favorites!');
-      setIsAuthModalOpen(true);
-      return;
-    }
-
     const exists = user.wishlistIds.includes(productId);
     const updatedWishlist = exists
       ? user.wishlistIds.filter(id => id !== productId)
@@ -664,25 +660,8 @@ export default function App() {
             />
           </div>
 
-          {/* Highlights of platform */}
-          <div className="mt-10 sm:mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto pt-6 border-t border-zinc-100 dark:border-white/10">
-            <div className="p-3 text-center bg-zinc-50 dark:bg-white/[0.02] rounded-xl border border-zinc-150/40 dark:border-white/10">
-              <span className="block font-mono text-xl sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400">0%</span>
-              <span className="text-[10px] font-mono text-zinc-405 dark:text-slate-400 uppercase tracking-widest mt-0.5">Upload Bulk Bloat</span>
-            </div>
-            <div className="p-3 text-center bg-zinc-50 dark:bg-white/[0.02] rounded-xl border border-zinc-150/40 dark:border-white/10">
-              <span className="block font-sans text-xl sm:text-2xl font-bold text-zinc-900 dark:text-white">PRO</span>
-              <span className="text-[10px] font-mono text-zinc-405 dark:text-slate-400 uppercase tracking-widest mt-0.5">External links</span>
-            </div>
-            <div className="p-3 text-center bg-zinc-50 dark:bg-white/[0.02] rounded-xl border border-zinc-150/40 dark:border-white/10">
-              <span className="block font-mono text-xl sm:text-2xl font-bold text-zinc-900 dark:text-white">100%</span>
-              <span className="text-[10px] font-mono text-zinc-405 dark:text-slate-400 uppercase tracking-widest mt-0.5">SSL Secured Portal</span>
-            </div>
-            <div className="p-3 text-center bg-zinc-50 dark:bg-white/[0.02] rounded-xl border border-zinc-150/40 dark:border-white/10">
-              <span className="block font-mono text-xl sm:text-2xl font-bold text-zinc-900 dark:text-white">LIFETIME</span>
-              <span className="text-[10px] font-mono text-zinc-405 dark:text-slate-400 uppercase tracking-widest mt-0.5">Free product updates</span>
-            </div>
-          </div>
+          {/* Space divider */}
+          <div className="mt-8 border-t border-zinc-100 dark:border-white/10" />
 
         </div>
       </section>
@@ -832,145 +811,17 @@ export default function App() {
             </div>
           </div>
         )}
-        
-        {/* Secondary Navigation with active filters and filters toggles */}
-        <div className="w-full flex flex-col lg:flex-row gap-8 items-start">
+
+         {/* Catalog List section - beautifully centered list of assets */}
+        <div className="w-full space-y-6">
           
-          {/* Mobile Filter Toggle Button */}
-          <div className="w-full lg:hidden mb-1">
-            <button
-              onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
-              className="w-full flex items-center justify-between p-4 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-white/10 rounded-2xl cursor-pointer text-xs font-semibold hover:bg-zinc-50 dark:hover:bg-white/5 active:scale-99 transition-all text-zinc-850 dark:text-zinc-200"
-            >
-              <div className="flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-indigo-500" />
-                <span className="font-mono uppercase tracking-wider text-[11px]">Search Filters</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-zinc-500 dark:text-slate-400 font-sans">
-                <span>{isMobileFiltersOpen ? 'Hide Filters' : 'Show Filters'}</span>
-                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isMobileFiltersOpen ? 'rotate-180' : ''}`} />
-              </div>
-            </button>
-          </div>
-
-          {/* Side FILTER SYSTEM desktop panel */}
-          <aside className={`shrink-0 bg-white dark:bg-[#070707] p-5 rounded-2xl border border-zinc-200/80 dark:border-white/10 space-y-6 lg:sticky lg:top-24 w-full lg:w-64 transition-all duration-300 ${
-            isMobileFiltersOpen ? 'block' : 'hidden lg:block'
-          }`}>
-            
-            <div className="flex justify-between items-center pb-4 border-b border-zinc-100 dark:border-white/10 font-sans">
-              <div className="flex items-center gap-1.5 text-xs font-mono uppercase font-bold text-zinc-450 dark:text-slate-400">
-                <SlidersHorizontal className="w-4.5 h-4.5 text-indigo-500" />
-                <span>Filters</span>
-              </div>
-              
-              <button
-                id="reset-filters-anchor"
-                onClick={handleResetFilters}
-                className="text-[10.5px] font-sans font-bold text-indigo-550 hover:text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer flex items-center gap-0.5"
-                title="Settle filter defaults"
-              >
-                <RotateCcw className="w-3 h-3" />
-                <span>Reset</span>
-              </button>
-            </div>
-
-            {/* Price Slider */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs font-semibold">
-                <span className="text-zinc-400 font-mono text-[10px] uppercase">Max Price Cap:</span>
-                <span className="font-mono text-zinc-900 dark:text-indigo-400">${maxPrice}</span>
-              </div>
-              <input
-                id="filter-price-slider"
-                type="range"
-                min="0"
-                max="149"
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(parseInt(e.target.value))}
-                className="w-full h-1 bg-zinc-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-600 dark:accent-indigo-450"
-              />
-              <div className="flex justify-between text-[10px] font-mono text-zinc-400">
-                <span>$0 (Free)</span>
-                <span>$149+</span>
-              </div>
-            </div>
-
-            {/* Minimum Client Star Ratings threshold */}
-            <div className="space-y-2">
-              <span className="block text-[10px] font-mono text-zinc-400 uppercase tracking-widest mb-1.5">Min Stars Rating:</span>
-              <div className="flex flex-col gap-1.5">
-                {[0, 4, 4.5, 4.8].map((score) => {
-                  const isActive = minRating === score;
-                  return (
-                    <button
-                      id={`star-filter-btn-${score}`}
-                      key={score}
-                      onClick={() => setMinRating(score)}
-                      className={`text-left text-xs p-2.5 rounded-lg flex items-center justify-between transition-all cursor-pointer ${
-                        isActive
-                          ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 font-semibold border border-indigo-150/40 dark:border-indigo-500/30'
-                          : 'bg-transparent text-zinc-500 dark:text-slate-400 hover:bg-zinc-100 dark:hover:bg-white/5 hover:text-zinc-950 dark:hover:text-white border border-transparent'
-                      }`}
-                    >
-                      <span className="flex items-center gap-1">
-                        {score === 0 ? (
-                          <span>Any Customer Score</span>
-                        ) : (
-                          <>
-                            <span>{score}+ Stars rating</span>
-                            <span className="flex text-amber-400 font-bold">★</span>
-                          </>
-                        )}
-                      </span>
-                      {score > 0 && (
-                        <span className="text-[10px] text-zinc-400 dark:text-slate-500 font-mono">
-                          {products.filter(p => p.rating >= score).length} items
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Delivery channel info flag */}
-            <div className="p-3.5 bg-zinc-50 dark:bg-white/[0.015] rounded-xl border border-zinc-150/40 dark:border-white/10 space-y-1">
-              <span className="text-[9px] font-mono uppercase bg-indigo-100 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 px-1.5 py-0.5 rounded font-bold">Instant Release</span>
-              <p className="text-[10px] text-zinc-[505] dark:text-slate-400 leading-normal">
-                No storage account signup requested. Secure direct download assets unlock instantly in your browser on cleared checkout actions.
-              </p>
-            </div>
-
-            {/* Pro Membership Banner */}
-            <div className="p-4 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-xl">
-              <p className="text-xs font-semibold text-indigo-300 font-sans">Pro Membership</p>
-              <p className="text-[11px] text-slate-400 mt-1 leading-normal font-sans">
-                Get 20% off all assets and early access to drops.
-              </p>
-              <button 
-                onClick={() => {
-                  if (user.isLoggedIn) {
-                    triggerToast("💎 You have a virtual Pro Membership active!");
-                  } else {
-                    setIsAuthModalOpen(true);
-                  }
-                }}
-                className="w-full mt-3 bg-white/10 hover:bg-white/20 py-2 rounded-lg text-[11px] font-bold text-white transition-all cursor-pointer text-center"
-              >
-                Upgrade Now
-              </button>
-            </div>
-
-          </aside>
-
-          {/* Right catalog items list */}
-          <div className="flex-1 w-full space-y-6">
+          {/* Main catalog items list */}
+          <div className="w-full space-y-6">
             
             {/* Catalog Grid Bar Header */}
             <div className="flex flex-col sm:flex-row items-baseline sm:items-center justify-between gap-3 bg-white dark:bg-white/[0.02] p-4 border border-zinc-200/50 dark:border-white/10 rounded-2xl">
               <div>
-                <p className="text-xs font-mono text-zinc-505 dark:text-slate-400 uppercase">Assets Catalogue</p>
+                <p className="text-xs font-mono text-zinc-500 dark:text-slate-400 uppercase">Assets Catalogue</p>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="text-sm font-sans font-bold text-zinc-800 dark:text-white">
                     {sortedProducts.length} premium element{sortedProducts.length !== 1 ? 's' : ''} found
@@ -985,12 +836,12 @@ export default function App() {
 
               {/* Sorting triggers */}
               <div className="flex items-center gap-2 text-xs">
-                <span className="text-zinc-405 font-mono text-[10px] uppercase shrink-0 dark:text-slate-400">Sort By:</span>
+                <span className="text-zinc-400 font-mono text-[10px] uppercase shrink-0 dark:text-slate-400">Sort By:</span>
                 <select
                   id="sort-products-picker"
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="bg-zinc-500/5 border border-zinc-200 dark:border-white/10 rounded-lg px-2.5 py-1.5 text-xs font-medium font-sans outline-none focus:border-indigo-500 select-none text-zinc-850 dark:text-slate-200 cursor-pointer"
+                  className="bg-zinc-500/5 border border-zinc-200 dark:border-white/10 rounded-lg px-2.5 py-1.5 text-xs font-medium font-sans outline-none focus:border-indigo-500 select-none text-zinc-850 dark:text-slate-205 cursor-pointer animate-none bg-transparent"
                 >
                   <option className="bg-white dark:bg-[#0a0a0a]" value="featured">🔥 High Rating</option>
                   <option className="bg-white dark:bg-[#0a0a0a]" value="newest">📅 Newest Arrivals</option>
@@ -1004,25 +855,25 @@ export default function App() {
             {/* Sorted list grids */}
             {sortedProducts.length === 0 ? (
               <div className="py-24 text-center space-y-4 bg-white dark:bg-zinc-950 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-900">
-                <div className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-350 dark:text-zinc-650 flex items-center justify-center mx-auto">
+                <div className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-350 dark:text-zinc-655 flex items-center justify-center mx-auto">
                   <Search className="w-6 h-6 animate-pulse" />
                 </div>
                 <div className="space-y-1">
                   <h4 className="text-sm font-sans font-bold text-zinc-900 dark:text-zinc-50">No files matched search bounds!</h4>
-                  <p className="text-xs text-zinc-455 dark:text-zinc-400 max-w-sm mx-auto">
-                    Try shifting your pricing threshold slider, checking other filter tags, or tweaking prompt texts.
+                  <p className="text-xs text-zinc-400 dark:text-zinc-500 max-w-sm mx-auto">
+                    Try checking other filter categories, tweaking search keyword expressions, or exploring tags.
                   </p>
                 </div>
                 <button
                   id="not-found-reset-btn"
                   onClick={handleResetFilters}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-sans font-bold text-xs rounded-xl shadow-md cursor-pointer"
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-505 text-white font-sans font-bold text-xs rounded-xl shadow-md cursor-pointer"
                 >
                   Restore Search Catalog Defaults
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
                 <AnimatePresence mode="popLayout">
                   {sortedProducts.map((product) => (
                     <ProductCard
@@ -1033,6 +884,7 @@ export default function App() {
                       onBuyNow={handleBuyNow}
                       isWishlisted={user.wishlistIds.includes(product.id)}
                       onToggleWishlist={handleToggleWishlist}
+                      onOpenImage={setActiveFullImage}
                     />
                   ))}
                 </AnimatePresence>
@@ -1195,7 +1047,43 @@ export default function App() {
             onAddReview={handleAddReview}
             user={user}
             setIsAuthModalOpen={setIsAuthModalOpen}
+            onOpenImage={setActiveFullImage}
           />
+        )}
+      </AnimatePresence>
+
+      {/* 6. High-end Glass Lightbox Modal for Product Images */}
+      <AnimatePresence>
+        {activeFullImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setActiveFullImage(null)}
+            className="fixed inset-0 z-[1000] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 cursor-zoom-out"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ type: "spring", damping: 28, stiffness: 350 }}
+              className="relative max-w-5xl max-h-[85vh] overflow-hidden rounded-3xl border border-white/10 shadow-2xl bg-zinc-900/50 backdrop-blur-xl flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={activeFullImage}
+                alt="Full Preview View"
+                className="max-w-full max-h-[80vh] object-contain rounded-2xl"
+              />
+              <button
+                onClick={() => setActiveFullImage(null)}
+                className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white p-2 sm:p-2.5 rounded-full border border-white/10 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                aria-label="Close Lightbox"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 

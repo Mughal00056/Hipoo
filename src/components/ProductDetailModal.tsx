@@ -26,6 +26,7 @@ interface ProductDetailModalProps {
   onAddReview: (productId: string, review: Omit<Review, 'id' | 'date'>) => void;
   user: UserProfile;
   setIsAuthModalOpen: (open: boolean) => void;
+  onOpenImage?: (imageUrl: string) => void;
 }
 
 export default function ProductDetailModal({
@@ -36,22 +37,20 @@ export default function ProductDetailModal({
   isPurchased,
   onAddReview,
   user,
-  setIsAuthModalOpen
+  setIsAuthModalOpen,
+  onOpenImage
 }: ProductDetailModalProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'reviews'>('details');
   const [newReviewRating, setNewReviewRating] = useState<number>(5);
   const [newReviewText, setNewReviewText] = useState<string>('');
+  const [customUsername, setCustomUsername] = useState<string>('');
   const [reviewError, setReviewError] = useState<string>('');
   const [reviewSuccess, setReviewSuccess] = useState<boolean>(false);
 
   const handleReviewSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!user.isLoggedIn) {
-      setReviewError('Please login or set up your name and email first!');
-      setTimeout(() => setIsAuthModalOpen(true), 1200);
-      return;
-    }
+
+    const finalName = customUsername.trim() || user.name || 'Anonymous User';
 
     if (!newReviewText.trim()) {
       setReviewError('Review text cannot be left blank.');
@@ -59,12 +58,13 @@ export default function ProductDetailModal({
     }
 
     onAddReview(product.id, {
-      username: user.name,
+      username: finalName,
       rating: newReviewRating,
       text: newReviewText.trim()
     });
 
     setNewReviewText('');
+    setCustomUsername('');
     setNewReviewRating(5);
     setReviewError('');
     setReviewSuccess(true);
@@ -103,13 +103,20 @@ export default function ProductDetailModal({
         {/* Modal Scroll area */}
         <div className="overflow-y-auto flex-1">
           {/* Main top visual banner */}
-          <div className="relative aspect-[21/9] w-full bg-zinc-100 dark:bg-zinc-900 overflow-hidden">
+          <div 
+            onClick={() => onOpenImage?.(product.previewImage)}
+            className="relative aspect-[21/9] w-full bg-zinc-100 dark:bg-zinc-900 overflow-hidden cursor-zoom-in group/image"
+            title="Click to view full image"
+          >
             <img
               src={product.previewImage}
               alt={product.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover/image:scale-[1.02]"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-zinc-950/30 to-transparent" />
+            <div className="absolute top-4 left-4 bg-zinc-950/60 backdrop-blur-md opacity-0 group-hover/image:opacity-100 transition-opacity text-white text-[10px] font-mono py-1 px-2.5 rounded-lg border border-white/10">
+              🔍 Click to open full-screen preview
+            </div>
             <div className="absolute bottom-6 left-6 right-6">
               <span className="px-2.5 py-1 text-[10px] font-mono font-medium tracking-wider bg-indigo-600 text-white rounded-lg uppercase shadow-sm">
                 {product.category}
@@ -241,6 +248,19 @@ export default function ProductDetailModal({
                     </h4>
 
                     <form onSubmit={handleReviewSubmit} className="space-y-4">
+                      {/* Name Selector */}
+                      <div>
+                        <label className="block text-xs font-mono text-zinc-400 uppercase tracking-wide mb-1.5">Your Name / Username</label>
+                        <input
+                          id="review-name-input"
+                          type="text"
+                          value={customUsername}
+                          onChange={(e) => setCustomUsername(e.target.value)}
+                          placeholder="e.g. Alexa, Robert Full-Stack, Guest Creator"
+                          className="w-full text-sm p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:border-indigo-500 dark:focus:border-indigo-400 focus:bg-white outline-none text-zinc-900 dark:text-zinc-100 placeholder-zinc-450 transition-all"
+                        />
+                      </div>
+
                       {/* Rating Selector */}
                       <div>
                         <label className="block text-xs font-mono text-zinc-400 uppercase tracking-wide mb-1.5">Your Rating Scale</label>

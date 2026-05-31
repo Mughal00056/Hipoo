@@ -165,7 +165,7 @@ export default function Navbar({
             </button>
 
             {/* User Profile / Login */}
-            {user.isLoggedIn ? (
+            {user.isLoggedIn && (
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <button
                   id="user-dashboard-trigger"
@@ -184,21 +184,12 @@ export default function Navbar({
                 <button
                   id="btn-logout"
                   onClick={onLogout}
-                  className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                  className="p-2 text-zinc-400 hover:text-zinc-650 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
                   title="Logout Account"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
               </div>
-            ) : (
-              <button
-                id="btn-login-trigger"
-                onClick={() => setIsAuthModalOpen(true)}
-                className="flex items-center gap-1.5 font-sans font-semibold text-xs sm:text-sm text-zinc-100 bg-zinc-900 dark:bg-indigo-600 dark:text-white py-2 px-4 sm:px-5 rounded-full hover:bg-zinc-850 dark:hover:bg-indigo-700 active:scale-98 transition-all cursor-pointer shadow-lg shadow-indigo-500/20"
-              >
-                <User className="w-4 h-4 stroke-[2.2]" />
-                <span>Sign In</span>
-              </button>
             )}
 
           </div>

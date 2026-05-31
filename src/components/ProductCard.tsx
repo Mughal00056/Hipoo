@@ -11,6 +11,7 @@ interface ProductCardProps {
   onBuyNow: (product: Product) => void;
   isWishlisted: boolean;
   onToggleWishlist: (productId: string) => void;
+  onOpenImage?: (imageUrl: string) => void;
 }
 
 export default function ProductCard({
@@ -19,7 +20,8 @@ export default function ProductCard({
   onAddToCart,
   onBuyNow,
   isWishlisted,
-  onToggleWishlist
+  onToggleWishlist,
+  onOpenImage
 }: ProductCardProps) {
   return (
     <motion.div
@@ -37,7 +39,9 @@ export default function ProductCard({
         <img
           src={product.previewImage}
           alt={product.title}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+          onClick={() => onOpenImage?.(product.previewImage)}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04] cursor-zoom-in"
+          title="Click to view full image"
         />
         
         {/* Category Sticker */}
