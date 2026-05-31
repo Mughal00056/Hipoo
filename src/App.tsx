@@ -469,64 +469,66 @@ export default function App() {
               filter: "blur(8px)",
               transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] }
             }}
-            className="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-[#050505] text-white overflow-hidden p-6 select-none"
+            className="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-[#040406] text-white overflow-hidden p-4 sm:p-6 select-none"
           >
             {/* Background cyber mesh ambient lights */}
             <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:30px_30px]" />
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-indigo-600/10 blur-[120px] pointer-events-none" />
-            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-violet-600/10 blur-[120px] pointer-events-none" />
+            <div className="absolute top-1/4 left-1/4 w-72 sm:w-96 h-72 sm:h-96 rounded-full bg-indigo-600/10 blur-[100px] sm:blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-1/4 right-1/4 w-72 sm:w-96 h-72 sm:h-96 rounded-full bg-violet-600/10 blur-[100px] sm:blur-[120px] pointer-events-none" />
 
-            <div className="max-w-md w-full text-center space-y-8 relative">
+            {/* Frosted Glass UI Card container */}
+            <div className="w-full max-w-[90%] sm:max-w-md text-center p-6 sm:p-8 rounded-3xl bg-zinc-950/50 backdrop-blur-xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.4)] relative space-y-6 sm:space-y-8">
+              
               {/* Spinning Logo Container */}
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.5, type: "spring" }}
-                className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-fuchsia-600 p-[1.5px] shadow-2xl shadow-indigo-500/30 flex items-center justify-center relative group"
+                className="mx-auto w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-fuchsia-600 p-[1.5px] shadow-2xl shadow-indigo-500/30 flex items-center justify-center relative group"
               >
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-fuchsia-600 blur-md opacity-50" />
                 <div className="w-full h-full rounded-2xl bg-zinc-950 flex items-center justify-center text-white relative z-10">
-                  <Sparkles className="w-8 h-8 text-indigo-400 stroke-[1.8] animate-pulse" />
+                  <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-400 stroke-[1.8] animate-pulse" />
                 </div>
               </motion.div>
 
               {/* Title Header paired with tracking effects */}
-              <div className="space-y-2 font-display">
+              <div className="space-y-1 font-display">
                 <motion.h1
                   initial={{ y: 15, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.15, duration: 0.4 }}
-                  className="font-black text-3xl sm:text-4xl tracking-tighter uppercase"
+                  className="font-black text-2xl sm:text-3xl tracking-tighter uppercase"
                 >
-                  Aether<span className="text-indigo-500 font-light">Vault</span>
+                  Aether<span className="text-indigo-400 font-light">Vault</span>
                 </motion.h1>
                 <motion.p
                   initial={{ y: 10, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.25, duration: 0.4 }}
-                  className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase"
+                  className="text-[9px] font-mono tracking-widest text-zinc-400 uppercase"
                 >
                   Premium Digital Artifacts Marketplace
                 </motion.p>
               </div>
 
               {/* Progress Bar Loader & Labels */}
-              <div className="space-y-4 pt-4">
-                <div className="relative h-[2px] w-full bg-white/5 rounded-full overflow-hidden">
+              <div className="space-y-3.5 pt-2">
+                <div className="relative h-[3px] w-full bg-white/5 rounded-full overflow-hidden">
                   <motion.div
-                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500"
+                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500 rounded-full"
                     style={{ width: `${splashProgress}%` }}
                     transition={{ ease: "easeOut" }}
                   />
                 </div>
                 
                 {/* Micro numbers and interactive status logs */}
-                <div className="flex items-center justify-between font-mono text-[9.5px]">
-                  <div className="w-4/5 text-left text-zinc-400 truncate flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-ping shrink-0" />
-                    <span>{SPLASH_LOGS[splashLogIndex]}</span>
+                <div className="flex items-center justify-between font-mono text-[9px] sm:text-[10px]">
+                  <div className="w-4/5 text-left text-zinc-300 truncate flex items-center gap-1.5 font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping shrink-0" />
+                    <span className="truncate">{SPLASH_LOGS[splashLogIndex]}</span>
                   </div>
-                  <span className="text-zinc-300 font-bold ml-2 shrink-0">{splashProgress}%</span>
+                  <span className="text-indigo-400 font-black ml-2 shrink-0">{splashProgress}%</span>
                 </div>
               </div>
 
@@ -535,7 +537,7 @@ export default function App() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.4 }}
                 transition={{ delay: 0.6 }}
-                className="text-[8px] font-mono tracking-widest text-zinc-600 uppercase pt-10"
+                className="text-[8px] font-mono tracking-widest text-zinc-500 uppercase pt-4 sm:pt-6 border-t border-white/5"
               >
                 Encrypted Connection SSL Secured • Build v2.4.1
               </motion.div>
@@ -688,27 +690,35 @@ export default function App() {
       {/* Primary catalog dashboard layout */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         
-        {/* Spotlight Carousel Banner - Smooth Animated Slider of Top Rated Assets */}
+        {/* Spotlight Carousel Banner - Smooth Animated Slider of Top Rated Assets with Premium Glass UI */}
         {searchQuery === '' && spotlightProducts.length > 0 && (
-          <div id="catalog-spotlight-carousel" className="mb-10 bg-gradient-to-br from-indigo-950/40 via-[#070707] to-zinc-950 border border-indigo-500/10 dark:border-white/10 rounded-3xl p-6 md:p-8 relative overflow-hidden shadow-2xl">
-            {/* Spotlight labels */}
-            <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-indigo-500/10 blur-[90px] pointer-events-none -mr-20 -mt-20" />
-            <div className="absolute -left-10 -bottom-10 w-64 h-64 rounded-full bg-violet-500/5 blur-[80px] pointer-events-none" />
+          <div 
+            id="catalog-spotlight-carousel" 
+            className="mb-10 backdrop-blur-xl bg-white/40 dark:bg-zinc-900/30 border border-white/40 dark:border-white/10 rounded-3xl p-5 sm:p-6 md:p-8 relative overflow-hidden shadow-[0_12px_44px_-10px_rgba(99,102,241,0.12)] dark:shadow-[0_12px_44px_-10px_rgba(0,0,0,0.5)] transition-all duration-300"
+          >
+            {/* Dynamic Glass Glow Highlights */}
+            <div className="absolute top-0 right-0 w-72 h-72 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 blur-[80px] pointer-events-none -mr-16 -mt-16 animate-pulse" />
+            <div className="absolute left-10 bottom-0 w-56 h-56 rounded-full bg-indigo-600/10 dark:bg-indigo-500/10 blur-[70px] pointer-events-none -ml-16 -mb-16" />
             
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-indigo-500 animate-ping" />
-                <span className="text-[11px] font-mono tracking-widest text-indigo-400 dark:text-indigo-300 uppercase font-black">Featured Spotlights</span>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 relative z-10">
+              <div className="flex items-center gap-2.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-505"></span>
+                </span>
+                <span className="text-[11px] font-mono tracking-widest text-indigo-600 dark:text-indigo-300 uppercase font-bold">Featured Spotlight</span>
               </div>
               
-              {/* Sliding dot indicators */}
-              <div className="flex items-center gap-2">
+              {/* Glass Slider navigation dot indicators */}
+              <div className="flex items-center gap-1.5 self-end sm:self-auto bg-zinc-200/40 dark:bg-white/5 py-1 px-2 rounded-full border border-zinc-300/30 dark:border-white/5">
                 {spotlightProducts.map((_, idx) => (
                   <button
                     key={idx}
                     onClick={() => setSpotlightIndex(idx)}
-                    className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                      spotlightIndex === idx ? 'w-6 bg-indigo-500' : 'w-2 bg-zinc-700 dark:bg-white/10'
+                    className={`h-2.5 rounded-full transition-all duration-350 cursor-pointer ${
+                      spotlightIndex === idx 
+                        ? 'w-6 bg-indigo-600 dark:bg-indigo-400' 
+                        : 'w-2.5 bg-zinc-400/40 dark:bg-white/10 hover:bg-zinc-400/60 dark:hover:bg-white/20'
                     }`}
                     aria-label={`Slide ${idx + 1}`}
                   />
@@ -717,88 +727,95 @@ export default function App() {
             </div>
 
             {/* Sliding Container with slide & crossfade effect */}
-            <div className="relative min-h-[290px] sm:min-h-[240px] md:min-h-[220px] flex items-center">
+            <div className="relative min-h-[340px] sm:min-h-[260px] md:min-h-[220px] flex items-center relative z-10">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={spotlightIndex}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                  className="w-full grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center"
+                  initial={{ opacity: 0, y: 10, filter: "blur(6px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, y: -10, filter: "blur(6px)" }}
+                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  className="w-full grid grid-cols-1 md:grid-cols-12 gap-5 md:gap-8 items-center"
                 >
                   {/* Left Column for product image preview */}
-                  <div className="md:col-span-4 relative group shrink-0">
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-indigo-500/20 to-fuchsia-500/20 opacity-0 group-hover:opacity-100 transition-opacity blur-md" />
-                    <img
-                      src={spotlightProducts[spotlightIndex].previewImage}
-                      alt={spotlightProducts[spotlightIndex].title}
-                      className="w-full h-44 sm:h-48 md:h-40 object-cover rounded-2xl border border-white/5 shadow-md relative z-10 select-none pointer-events-none"
-                    />
-                    <div className="absolute top-3 left-3 bg-indigo-600 text-white font-mono text-[9px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider z-20">
+                  <div className="col-span-1 md:col-span-4 lg:col-span-4 relative group w-full max-w-md mx-auto md:max-w-none">
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-indigo-500/30 to-violet-500/30 opacity-60 blur-md group-hover:opacity-100 transition-opacity" />
+                    <div className="aspect-video sm:aspect-[4/3] md:aspect-video w-full rounded-2xl overflow-hidden border border-white/50 dark:border-white/10 shadow-lg relative z-10 bg-zinc-150/50 dark:bg-black/40">
+                      <img
+                        src={spotlightProducts[spotlightIndex].previewImage}
+                        alt={spotlightProducts[spotlightIndex].title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103 select-none pointer-events-none"
+                      />
+                    </div>
+                    <div className="absolute top-3 left-3 bg-zinc-950/80 backdrop-blur-md text-white font-mono text-[9px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider z-20 border border-white/10">
                       {spotlightProducts[spotlightIndex].category}
                     </div>
                   </div>
 
                   {/* Right Column for content summaries */}
-                  <div className="md:col-span-8 flex flex-col justify-between h-full space-y-4">
+                  <div className="col-span-1 md:col-span-8 lg:col-span-8 flex flex-col justify-between h-full space-y-4">
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-yellow-400 text-xs">
+                      <div className="flex items-center gap-2 text-yellow-500 dark:text-yellow-400 text-xs">
                         <div className="flex">
                           {[...Array(5)].map((_, i) => (
                             <Star key={i} className="w-3.5 h-3.5 fill-current" />
                           ))}
                         </div>
-                        <span className="text-zinc-500 dark:text-zinc-400 font-mono">({spotlightProducts[spotlightIndex].reviewsCount} Verified)</span>
+                        <span className="text-zinc-650 dark:text-zinc-400 font-mono text-[11px]">({spotlightProducts[spotlightIndex].reviewsCount} Verified Ratings)</span>
                       </div>
                       
-                      <h3 className="text-xl sm:text-2xl font-display font-black text-zinc-900 dark:text-white leading-tight uppercase tracking-tight">
+                      <h3 className="text-lg sm:text-2xl font-display font-black text-zinc-900 dark:text-white leading-snug uppercase tracking-tight">
                         {spotlightProducts[spotlightIndex].title}
                       </h3>
                       
-                      <p className="text-xs sm:text-sm text-zinc-500 dark:text-slate-400 max-w-xl leading-relaxed">
+                      <p className="text-xs sm:text-[13px] text-zinc-600 dark:text-slate-350 max-w-2xl leading-relaxed">
                         {spotlightProducts[spotlightIndex].shortDescription}
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 pt-1">
+                    <div className="flex flex-wrap gap-1.5 pt-1">
                       {spotlightProducts[spotlightIndex].tags.slice(0, 3).map((tag) => (
-                        <span key={tag} className="text-[10px] font-mono bg-zinc-100 dark:bg-white/5 border border-zinc-200/50 dark:border-white/5 py-1 px-2.5 rounded-md text-zinc-600 dark:text-slate-400">
+                        <span key={tag} className="text-[9px] sm:text-[10px] font-mono bg-zinc-200/50 dark:bg-white/5 border border-zinc-300/30 dark:border-white/5 py-1 px-2.5 rounded-md text-zinc-700 dark:text-slate-300 uppercase">
                           #{tag}
                         </span>
                       ))}
                     </div>
 
                     {/* Interactive Triggers */}
-                    <div className="flex items-center gap-3.5 pt-2 border-t border-zinc-100 dark:border-white/5">
-                      <span className="text-xl font-display font-black text-indigo-600 dark:text-indigo-400">
-                        {spotlightProducts[spotlightIndex].price === 0 ? '$FREE' : `$${spotlightProducts[spotlightIndex].price}`}
-                      </span>
+                    <div className="flex flex-wrap items-center gap-3.5 pt-3 border-t border-zinc-200 dark:border-white/5">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-mono uppercase text-zinc-400 dark:text-slate-500">Asset Cost</span>
+                        <span className="text-lg sm:text-xl font-mono font-black text-indigo-650 dark:text-indigo-400">
+                          {spotlightProducts[spotlightIndex].price === 0 ? 'FREE' : `$${spotlightProducts[spotlightIndex].price}`}
+                        </span>
+                      </div>
                       
-                      <button
-                        onClick={() => setSelectedProduct(spotlightProducts[spotlightIndex])}
-                        className="px-4.5 py-2 bg-zinc-900 border border-white/5 hover:bg-zinc-805 text-zinc-100 text-xs font-semibold rounded-xl active:scale-98 transition-all cursor-pointer font-sans"
-                      >
-                        Inspect Resource
-                      </button>
+                      <div className="ml-auto flex items-center gap-2">
+                        <button
+                          onClick={() => setSelectedProduct(spotlightProducts[spotlightIndex])}
+                          className="px-3.5 sm:px-4.5 py-2 bg-zinc-200/60 dark:bg-white/5 hover:bg-zinc-300/60 dark:hover:bg-white/10 text-zinc-800 dark:text-zinc-100 text-xs font-semibold rounded-xl active:scale-98 transition-all cursor-pointer font-sans border border-transparent dark:border-white/5"
+                        >
+                          Details
+                        </button>
 
-                      <button
-                        onClick={() => handleBuyNow(spotlightProducts[spotlightIndex])}
-                        className="px-5 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-500 hover:to-violet-500 text-xs font-bold rounded-xl active:scale-98 transition-all cursor-pointer font-sans shadow-md shadow-indigo-500/10"
-                      >
-                        Instant Checkout
-                      </button>
+                        <button
+                          onClick={() => handleBuyNow(spotlightProducts[spotlightIndex])}
+                          className="px-4.5 sm:px-5 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-bold rounded-xl active:scale-98 transition-all cursor-pointer font-sans shadow-md shadow-indigo-500/10"
+                        >
+                          Checkout
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
               </AnimatePresence>
             </div>
             
-            {/* Next/Prev buttons overlay */}
-            <div className="absolute right-6 bottom-6 flex items-center gap-2 z-20">
+            {/* Quick Next/Prev buttons overlay - Frosted glass finish buttons */}
+            <div className="absolute right-4 bottom-4 sm:right-6 sm:bottom-6 flex items-center gap-2 z-20">
               <button
                 onClick={() => setSpotlightIndex((prev) => (prev === 0 ? spotlightProducts.length - 1 : prev - 1))}
-                className="w-8 h-8 rounded-full bg-zinc-900 hover:bg-zinc-800 text-slate-400 hover:text-white flex items-center justify-center border border-white/5 transition-all active:scale-90 cursor-pointer"
+                className="w-8 h-8 rounded-full bg-zinc-250/80 dark:bg-zinc-900/50 hover:bg-zinc-350 dark:hover:bg-zinc-800 text-zinc-700 dark:text-slate-400 hover:text-zinc-900 dark:hover:text-white flex items-center justify-center border border-zinc-300/40 dark:border-white/10 transition-all active:scale-90 cursor-pointer backdrop-blur-md"
                 title="Swipe Spotlight Left"
                 aria-label="Previous Slide Item"
               >
@@ -806,7 +823,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setSpotlightIndex((prev) => (prev + 1) % spotlightProducts.length)}
-                className="w-8 h-8 rounded-full bg-zinc-900 hover:bg-zinc-800 text-slate-400 hover:text-white flex items-center justify-center border border-white/5 transition-all active:scale-90 cursor-pointer"
+                className="w-8 h-8 rounded-full bg-zinc-250/80 dark:bg-zinc-900/50 hover:bg-zinc-350 dark:hover:bg-zinc-800 text-zinc-700 dark:text-slate-400 hover:text-zinc-900 dark:hover:text-white flex items-center justify-center border border-zinc-300/40 dark:border-white/10 transition-all active:scale-90 cursor-pointer backdrop-blur-md"
                 title="Swipe Spotlight Right"
                 aria-label="Next Slide Item"
               >
