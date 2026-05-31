@@ -164,43 +164,7 @@ export default function Navbar({
               )}
             </button>
 
-            {/* User Profile / Login */}
-            {user.isLoggedIn ? (
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <button
-                  id="user-dashboard-trigger"
-                  onClick={() => setIsDashboardOpen(true)}
-                  className="flex items-center gap-2 p-1.5 pr-2.5 sm:p-2 sm:pr-3.5 rounded-lg bg-indigo-50/50 hover:bg-indigo-50 dark:bg-white/5 dark:hover:bg-white/10 text-indigo-600 dark:text-indigo-400 border border-indigo-100/50 dark:border-white/10 transition-all cursor-pointer"
-                >
-                  <img
-                    src={user.avatar}
-                    alt={user.name}
-                    className="w-6.5 h-6.5 rounded-full object-cover ring-1 ring-indigo-300 dark:ring-indigo-700"
-                  />
-                  <span className="hidden sm:inline text-xs font-medium tracking-tight truncate max-w-[80px]">
-                    {user.name.split(' ')[0]}
-                  </span>
-                </button>
-                <button
-                  id="btn-logout"
-                  onClick={onLogout}
-                  className="p-2 text-zinc-400 hover:text-zinc-650 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
-                  title="Logout Account"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <button
-                id="btn-login-trigger"
-                onClick={() => setIsAuthModalOpen(true)}
-                className="flex items-center gap-1.5 font-sans font-bold text-xs sm:text-sm text-zinc-100 bg-zinc-900 dark:bg-indigo-600 dark:text-white py-2 px-3 sm:px-4.5 rounded-full hover:bg-zinc-850 dark:hover:bg-indigo-700 active:scale-98 transition-all cursor-pointer shadow-md"
-              >
-                <User className="w-4 h-4 stroke-[2.2]" />
-                <span className="hidden sm:inline">Sign In / Sign Up</span>
-                <span className="sm:hidden">Login</span>
-              </button>
-            )}
+            {/* Removed inline user profile and login/logout buttons from Navbar */}
 
           </div>
         </div>

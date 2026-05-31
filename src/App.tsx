@@ -20,7 +20,9 @@ import {
   X,
   Download,
   Menu,
-  ExternalLink
+  ExternalLink,
+  User,
+  LogOut
 } from 'lucide-react';
 
 import { Product, CartItem, UserProfile, DownloadProvider, Review } from './types';
@@ -107,6 +109,7 @@ export default function App() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [activeFullImage, setActiveFullImage] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [menuSubView, setMenuSubView] = useState<'main' | 'form'>('main');
 
   // Custom Thumbnail/Asset Form States
   const [customTitle, setCustomTitle] = useState<string>('');
@@ -218,6 +221,13 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('aether-user', JSON.stringify(user));
   }, [user]);
+
+  // Reset side menu view when it closes
+  useEffect(() => {
+    if (!isMenuOpen) {
+      setMenuSubView('main');
+    }
+  }, [isMenuOpen]);
 
   // Handle custom thumbnail asset submission
   const handleCustomAssetSubmit = (e: React.FormEvent) => {
@@ -1210,19 +1220,31 @@ export default function App() {
                 animate={{ x: 0 }}
                 exit={{ x: '-100%' }}
                 transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-                className="w-screen max-w-md bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-850 shadow-2xl flex flex-col"
+                className="w-full max-w-md bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-850 shadow-2xl flex flex-col h-full"
               >
                 {/* Header */}
                 <div className="p-5 border-b border-zinc-100 dark:border-zinc-900 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400">
-                      <Sparkles className="w-5 h-5" />
+                  {menuSubView === 'form' ? (
+                    <button
+                      onClick={() => setMenuSubView('main')}
+                      className="flex items-center gap-2 text-indigo-600 hover:text-indigo-505 dark:text-indigo-400 hover:dark:text-indigo-300 font-sans font-bold text-xs uppercase cursor-pointer"
+                    >
+                      <svg className="w-4 h-4 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                      </svg>
+                      <span>Back to Menu</span>
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400">
+                        <Menu className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-sans font-black text-sm uppercase dark:text-zinc-105 tracking-tight">Main Portal Menu</h3>
+                        <p className="text-[10px] font-mono text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-none">Studio Portal</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-sans font-black text-sm uppercase dark:text-zinc-100 tracking-tight">Customized Thumbnail</h3>
-                      <p className="text-[10px] font-mono text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-none">Studio Portal</p>
-                    </div>
-                  </div>
+                  )}
                   <button
                     onClick={() => setIsMenuOpen(false)}
                     className="p-1.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-100 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
@@ -1233,143 +1255,234 @@ export default function App() {
 
                 {/* Drawer Body - Scrollable */}
                 <div className="flex-1 overflow-y-auto p-5 space-y-6">
-                  
-                  {/* Quick Action Navigation */}
-                  <div className="space-y-2">
-                    <span className="text-[9px] font-mono font-bold uppercase text-zinc-400 dark:text-zinc-500 tracking-wider">Navigation shortcuts</span>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => {
-                          setIsMenuOpen(false);
-                          setActiveCategory('All');
-                        }}
-                        className="p-2.5 rounded-xl bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-900/50 dark:hover:bg-zinc-900 border border-zinc-100 dark:border-zinc-850 text-left text-xs font-semibold dark:text-zinc-200 cursor-pointer"
-                      >
-                        Explore Catalog
-                      </button>
-                      <button
-                        onClick={() => {
-                          setIsMenuOpen(false);
-                          if (user.isLoggedIn) {
-                            setIsDashboardOpen(true);
-                          } else {
-                            setIsAuthModalOpen(true);
-                          }
-                        }}
-                        className="p-2.5 rounded-xl bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-900/50 dark:hover:bg-zinc-900 border border-zinc-100 dark:border-zinc-850 text-left text-xs font-semibold dark:text-zinc-200 cursor-pointer"
-                      >
-                        My Library
-                      </button>
-                    </div>
-                  </div>
 
-                  {/* Add Custom thumbnail form */}
-                  <div className="border border-indigo-100 dark:border-indigo-950 bg-indigo-50/15 dark:bg-indigo-950/10 p-4.5 rounded-2xl space-y-4">
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
-                      <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-indigo-650 dark:text-indigo-400">Publish Customized Thumbnail</h4>
-                    </div>
-                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed -mt-1.5">
-                      Dynamically publish your custom assets with elegant custom image previews, thumbnail description subtitles, and custom pricing!
-                    </p>
-
-                    <form onSubmit={handleCustomAssetSubmit} className="space-y-3.5">
-                      <div>
-                        <label className="block text-[10px] font-mono text-zinc-450 dark:text-zinc-400 tracking-wide uppercase mb-1">Asset Name / Title</label>
-                        <input
-                          type="text"
-                          required
-                          value={customTitle}
-                          onChange={(e) => setCustomTitle(e.target.value)}
-                          placeholder="e.g. Modern UI Dashboard Pack"
-                          className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-800 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
-                        />
+                  {menuSubView === 'main' ? (
+                    <div className="space-y-6">
+                      
+                      {/* Customized Thumbnail studio prompt */}
+                      <div className="space-y-2">
+                        <span className="text-[10px] font-mono font-bold uppercase text-zinc-400 dark:text-zinc-500 tracking-wider">Thumbnail Studio</span>
+                        <button
+                          onClick={() => setMenuSubView('form')}
+                          className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-indigo-50/75 to-violet-50/50 hover:from-indigo-100/70 hover:to-violet-100/50 dark:from-indigo-950/20 dark:to-violet-950/10 dark:hover:from-indigo-950/35 dark:hover:to-violet-950/25 border border-indigo-100/70 dark:border-indigo-950/40 rounded-2xl cursor-pointer text-left transition-all active:scale-99"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-500/25">
+                              <Sparkles className="w-5 h-5 animate-pulse" />
+                            </div>
+                            <div>
+                              <h4 className="text-xs font-sans font-bold text-zinc-850 dark:text-white uppercase tracking-tight">Customized Thumbnail</h4>
+                              <p className="text-[10px] text-zinc-500 dark:text-zinc-450 leading-none mt-0.5">Configure custom image, label & price</p>
+                            </div>
+                          </div>
+                          <div className="text-indigo-600 dark:text-indigo-400">
+                            <svg className="w-4 h-4 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                        </button>
                       </div>
 
-                      <div>
-                        <label className="block text-[10px] font-mono text-zinc-455 dark:text-zinc-400 tracking-wide uppercase mb-1">Thumbnail Name / Label</label>
-                        <input
-                          type="text"
-                          required
-                          value={customShortDesc}
-                          onChange={(e) => setCustomShortDesc(e.target.value)}
-                          placeholder="e.g. Clean 24+ Layout Screen Components"
-                          className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-800 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] font-mono text-zinc-455 dark:text-zinc-400 tracking-wide uppercase mb-1">PNG Image / Preview URL</label>
-                        <input
-                          type="url"
-                          required
-                          value={customPreviewImage}
-                          onChange={(e) => setCustomPreviewImage(e.target.value)}
-                          placeholder="https://images.unsplash.com/photo-..."
-                          className="w-full text-xs p-2.5 bg-white dark:bg-zinc-150 border border-zinc-250 dark:border-zinc-800 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-[10px] font-mono text-zinc-455 dark:text-zinc-400 tracking-wide uppercase mb-1">Category</label>
-                          <select
-                            value={customCategory}
-                            onChange={(e) => setCustomCategory(e.target.value as any)}
-                            className="w-full text-xs p-2 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-800 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
+                      {/* Navigation shortcuts */}
+                      <div className="space-y-2">
+                        <span className="text-[10px] font-mono font-bold uppercase text-zinc-400 dark:text-zinc-500 tracking-wider">Navigation shortcuts</span>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            onClick={() => {
+                              setIsMenuOpen(false);
+                              setActiveCategory('All');
+                            }}
+                            className="p-3 rounded-xl bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-900/55 dark:hover:bg-zinc-900 border border-zinc-100 dark:border-zinc-855 text-left text-xs font-bold text-zinc-700 dark:text-zinc-200 cursor-pointer shadow-xs transition-colors"
                           >
-                            <option value="Web Templates">Web Templates</option>
-                            <option value="UI Kits">UI Kits</option>
-                            <option value="Scripts">Scripts</option>
-                            <option value="Plugins">Plugins</option>
-                            <option value="Graphics">Graphics</option>
-                            <option value="SaaS Tools">SaaS Tools</option>
-                            <option value="AI Prompts">AI Prompts</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="block text-[10px] font-mono text-zinc-455 dark:text-zinc-400 tracking-wide uppercase mb-1">Price ($USD)</label>
-                          <input
-                            type="number"
-                            min="0"
-                            max="500"
-                            required
-                            value={customPrice}
-                            onChange={(e) => setCustomPrice(Number(e.target.value))}
-                            className="w-full text-xs p-2 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-800 rounded-xl outline-none focus:border-indigo-500 text-zinc-905 dark:text-white transition-colors"
-                          />
+                            Explore Catalog
+                          </button>
+                          <button
+                            onClick={() => {
+                              setIsMenuOpen(false);
+                              if (user.isLoggedIn) {
+                                setIsDashboardOpen(true);
+                              } else {
+                                setIsAuthModalOpen(true);
+                              }
+                            }}
+                            className="p-3 rounded-xl bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-900/55 dark:hover:bg-zinc-900 border border-zinc-100 dark:border-zinc-855 text-left text-xs font-bold text-zinc-700 dark:text-zinc-200 cursor-pointer shadow-xs transition-colors"
+                          >
+                            My Saved Library
+                          </button>
                         </div>
                       </div>
 
-                      <div>
-                        <label className="block text-[10px] font-mono text-zinc-455 dark:text-zinc-400 tracking-wide uppercase mb-1">Digital File Source URL</label>
-                        <input
-                          type="url"
-                          required
-                          value={customDownloadUrl}
-                          onChange={(e) => setCustomDownloadUrl(e.target.value)}
-                          placeholder="https://drive.google.com/..."
-                          className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-800 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
-                        />
+                      {/* Account Portal - login & logout buttons now exclusively inside menu! */}
+                      <div className="space-y-2 pt-2 border-t border-zinc-100 dark:border-zinc-900">
+                        <span className="text-[10px] font-mono font-bold uppercase text-zinc-400 dark:text-zinc-500 tracking-wider">Authorized Account</span>
+                        
+                        {user.isLoggedIn ? (
+                          <div className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-150 dark:border-zinc-850 p-4 rounded-2xl space-y-3">
+                            <div className="flex items-center gap-3">
+                              <img
+                                src={user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120'}
+                                alt={user.name}
+                                className="w-10 h-10 rounded-full object-cover ring-2 ring-indigo-500/20"
+                              />
+                              <div className="overflow-hidden">
+                                <h4 className="text-xs font-sans font-bold text-zinc-800 dark:text-white truncate uppercase">{user.name}</h4>
+                                <p className="text-[9px] font-mono text-indigo-500 dark:text-indigo-400 uppercase tracking-widest">{user.email || 'Member Session'}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-2 pt-1">
+                              <button
+                                onClick={() => {
+                                  setIsMenuOpen(false);
+                                  setIsDashboardOpen(true);
+                                }}
+                                className="py-2.5 px-3 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-950/70 border border-indigo-100/50 dark:border-indigo-950/60 font-sans font-bold text-[11px] rounded-xl transition-all cursor-pointer text-center"
+                              >
+                                View Profile
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setIsMenuOpen(false);
+                                  handleLogout();
+                                }}
+                                className="py-2.5 px-3 bg-red-50 hover:bg-red-100/80 dark:bg-red-955/15 dark:hover:bg-red-955/35 text-red-650 dark:text-red-400 border border-red-100/50 dark:border-red-955/30 font-sans font-bold text-[11px] rounded-xl transition-all cursor-pointer text-center flex items-center justify-center gap-1.5"
+                              >
+                                <LogOut className="w-3.5 h-3.5" />
+                                <span>Sign Out</span>
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-150 dark:border-zinc-850 p-4 rounded-2xl flex flex-col text-center space-y-3.5">
+                            <p className="text-[10px] text-zinc-550 dark:text-zinc-400 leading-relaxed">
+                              Sign in with your credentials to sync digital downloads, unlock private cloud-keys, and save items in your personalized dashboard directory.
+                            </p>
+                            <button
+                              onClick={() => {
+                                setIsMenuOpen(false);
+                                setIsAuthModalOpen(true);
+                              }}
+                              className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-850 dark:bg-indigo-655 dark:hover:bg-indigo-700 text-white font-sans font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5"
+                            >
+                              <User className="w-4 h-4 stroke-[2.3]" />
+                              <span>Sign In / Create Account</span>
+                            </button>
+                          </div>
+                        )}
                       </div>
 
-                      <button
-                        type="submit"
-                        className="w-full mt-2 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-sans font-bold text-xs rounded-xl active:scale-99 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
-                      >
-                        Publish Customized Thumbnail 🚀
-                      </button>
-                    </form>
-                  </div>
+                    </div>
+                  ) : (
+                    /* Add Custom thumbnail form view */
+                    <div className="space-y-6">
+                      <div className="border border-indigo-100 dark:border-indigo-950 bg-indigo-50/15 dark:bg-indigo-950/10 p-4.5 rounded-2xl space-y-4">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
+                          <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-indigo-650 dark:text-indigo-400">Publish Customized Thumbnail</h4>
+                        </div>
+                        <p className="text-[11px] text-zinc-550 dark:text-zinc-400 leading-relaxed -mt-1.5">
+                          Dynamically publish your custom assets with elegant custom image previews, thumbnail description subtitles, and custom pricing!
+                        </p>
 
-                  {/* Sandbox helper instructions */}
-                  <div className="flex gap-2.5 p-3.5 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-150 dark:border-zinc-850 rounded-2xl">
-                    <Info className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
-                    <p className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-relaxed animate-pulse">
-                      Customized thumbnails persist inside active client storage! Easily add name, select custom category circles, specify PNG preview images, and try full shopping checkout flow instantly.
-                    </p>
-                  </div>
+                        <form onSubmit={handleCustomAssetSubmit} className="space-y-3.5">
+                          <div>
+                            <label className="block text-[10px] font-mono text-zinc-450 dark:text-zinc-400 tracking-wide uppercase mb-1">Asset Name / Title</label>
+                            <input
+                              type="text"
+                              required
+                              value={customTitle}
+                              onChange={(e) => setCustomTitle(e.target.value)}
+                              placeholder="e.g. Modern UI Dashboard Pack"
+                              className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-805 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-mono text-zinc-455 dark:text-zinc-400 tracking-wide uppercase mb-1">Thumbnail Name / Label</label>
+                            <input
+                              type="text"
+                              required
+                              value={customShortDesc}
+                              onChange={(e) => setCustomShortDesc(e.target.value)}
+                              placeholder="e.g. Clean 24+ Layout Screen Components"
+                              className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-805 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-mono text-zinc-455 dark:text-zinc-400 tracking-wide uppercase mb-1">PNG Image / Preview URL</label>
+                            <input
+                              type="url"
+                              required
+                              value={customPreviewImage}
+                              onChange={(e) => setCustomPreviewImage(e.target.value)}
+                              placeholder="https://images.unsplash.com/photo-..."
+                              className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-805 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-[10px] font-mono text-zinc-455 dark:text-zinc-400 tracking-wide uppercase mb-1">Category</label>
+                              <select
+                                value={customCategory}
+                                onChange={(e) => setCustomCategory(e.target.value as any)}
+                                className="w-full text-xs p-2 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-805 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
+                              >
+                                <option value="Web Templates">Web Templates</option>
+                                <option value="UI Kits">UI Kits</option>
+                                <option value="Scripts">Scripts</option>
+                                <option value="Plugins">Plugins</option>
+                                <option value="Graphics">Graphics</option>
+                                <option value="SaaS Tools">SaaS Tools</option>
+                                <option value="AI Prompts">AI Prompts</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-mono text-zinc-455 dark:text-zinc-405 tracking-wide uppercase mb-1">Price ($USD)</label>
+                              <input
+                                type="number"
+                                min="0"
+                                max="500"
+                                required
+                                value={customPrice}
+                                onChange={(e) => setCustomPrice(Number(e.target.value))}
+                                className="w-full text-xs p-2 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-805 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-mono text-zinc-455 dark:text-zinc-400 tracking-wide uppercase mb-1">Digital File Source URL</label>
+                            <input
+                              type="url"
+                              required
+                              value={customDownloadUrl}
+                              onChange={(e) => setCustomDownloadUrl(e.target.value)}
+                              placeholder="https://drive.google.com/..."
+                              className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-805 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
+                            />
+                          </div>
+
+                          <button
+                            type="submit"
+                            className="w-full mt-2 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-sans font-bold text-xs rounded-xl active:scale-99 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+                          >
+                            Publish Customized Thumbnail 🚀
+                          </button>
+                        </form>
+                      </div>
+
+                      {/* Sandbox helper instructions */}
+                      <div className="flex gap-2.5 p-3.5 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-150 dark:border-zinc-850 rounded-2xl">
+                        <Info className="w-4.5 h-4.5 text-indigo-500 shrink-0 mt-0.5" />
+                        <p className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                          Customized thumbnails persist inside active client storage! Easily add name, select custom category circles, specify PNG preview images, and try full shopping checkout flow instantly.
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                 </div>
               </motion.div>
