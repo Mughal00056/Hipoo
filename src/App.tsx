@@ -17,7 +17,10 @@ import {
   CheckCircle,
   Clock,
   ShieldAlert,
-  X
+  X,
+  Download,
+  Menu,
+  ExternalLink
 } from 'lucide-react';
 
 import { Product, CartItem, UserProfile, DownloadProvider, Review } from './types';
@@ -29,6 +32,18 @@ import CartDrawer from './components/CartDrawer';
 import CheckoutModal from './components/CheckoutModal';
 import Dashboard from './components/Dashboard';
 import AuthModal from './components/AuthModal';
+
+const CIRCLE_CATEGORIES = [
+  { name: 'All', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=150&h=150' },
+  { name: 'Web Templates', image: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&q=80&w=150&h=150' },
+  { name: 'UI Kits', image: 'https://images.unsplash.com/photo-1541462608143-67571c6738dd?auto=format&fit=crop&q=80&w=150&h=150' },
+  { name: 'Scripts', image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=150&h=150' },
+  { name: 'Plugins', image: 'https://images.unsplash.com/photo-1639322537228-f710d846310a?auto=format&fit=crop&q=80&w=150&h=150' },
+  { name: 'Graphics', image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=150&h=150' },
+  { name: 'SaaS Tools', image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=150&h=150' },
+  { name: 'AI Prompts', image: 'https://images.unsplash.com/photo-1675557009875-436f09780264?auto=format&fit=crop&q=80&w=150&h=150' },
+  { name: 'Downloads', image: 'https://images.unsplash.com/photo-1618005198143-e5283b519a7f?auto=format&fit=crop&q=80&w=150&h=150', isDownload: true }
+];
 
 export default function App() {
   // Theme Configuration (Light vs Dark)
@@ -91,6 +106,15 @@ export default function App() {
   const [isDashboardOpen, setIsDashboardOpen] = useState<boolean>(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [activeFullImage, setActiveFullImage] = useState<string | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+
+  // Custom Thumbnail/Asset Form States
+  const [customTitle, setCustomTitle] = useState<string>('');
+  const [customShortDesc, setCustomShortDesc] = useState<string>('');
+  const [customPreviewImage, setCustomPreviewImage] = useState<string>('');
+  const [customCategory, setCustomCategory] = useState<Product['category']>('Web Templates');
+  const [customPrice, setCustomPrice] = useState<number>(0);
+  const [customDownloadUrl, setCustomDownloadUrl] = useState<string>('');
 
   // Search & Filter state variables
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -194,6 +218,55 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('aether-user', JSON.stringify(user));
   }, [user]);
+
+  // Handle custom thumbnail asset submission
+  const handleCustomAssetSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customTitle || !customPreviewImage || !customShortDesc || !customDownloadUrl) {
+      alert("Please provide all required fields!");
+      return;
+    }
+
+    const newProduct: Product = {
+      id: `custom-${Date.now()}`,
+      title: customTitle,
+      shortDescription: customShortDesc,
+      description: `This is a premium custom-compiled design asset dynamically published on AetherVault platform. It contains fully detailed layout templates, customizable vector modules, and direct high-performance source components for seamless sandbox development integration.`,
+      category: customCategory,
+      price: customPrice,
+      rating: 5.0,
+      reviewsCount: 0,
+      tags: [customCategory.toLowerCase(), 'custom', 'sandbox'],
+      previewImage: customPreviewImage,
+      downloadUrl: customDownloadUrl,
+      provider: 'Google Drive',
+      dateCreated: 'May 2026',
+      features: [
+        'Premium PNG/Image source thumbnail files included',
+        'Lifetime unlimited developer integration licence',
+        'Fully-tested high-performance component architecture',
+        'Direct cloud mirror secure sandbox package files'
+      ],
+      fileSize: '15.4 MB',
+      fileFormat: 'ZIP Archive',
+      version: 'v1.0.0',
+      reviews: []
+    };
+
+    setProducts(prevProducts => [newProduct, ...prevProducts]);
+    
+    // Clear form
+    setCustomTitle('');
+    setCustomShortDesc('');
+    setCustomPreviewImage('');
+    setCustomCategory('Web Templates');
+    setCustomPrice(0);
+    setCustomDownloadUrl('');
+    
+    // Close Drawer Show Toast
+    setIsMenuOpen(false);
+    triggerToast(`Successfully published "${newProduct.title}" to catalog!`);
+  };
 
   // Trigger quick alerts
   const triggerToast = (msg: string) => {
@@ -408,13 +481,16 @@ export default function App() {
       product.tags.some(tag => tag.toLowerCase().includes(textQuery));
 
     // 2. Category Match
-    const matchesCategory = activeCategory === 'All' || product.category === activeCategory;
+    const matchesCategory = activeCategory === 'All' || 
+      (activeCategory === 'Downloads' 
+        ? user.purchasedProducts.some(p => p.productId === product.id)
+        : product.category === activeCategory);
 
     // 3. Price Match
-    const matchesPrice = product.price <= maxPrice;
+    const matchesPrice = activeCategory === 'Downloads' || product.price <= maxPrice;
 
     // 4. Rating Match
-    const matchesRating = product.rating >= minRating;
+    const matchesRating = activeCategory === 'Downloads' || product.rating >= minRating;
 
     return matchesKeyword && matchesCategory && matchesPrice && matchesRating;
   });
@@ -621,6 +697,7 @@ export default function App() {
           setActiveCategory('All');
           setSearchQuery('');
         }}
+        onMenuClick={() => setIsMenuOpen(true)}
       />
 
       {/* Hero Head Banner */}
@@ -634,7 +711,7 @@ export default function App() {
           
           <div className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-mono font-medium tracking-wide bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300 rounded-full border border-indigo-100/30 dark:border-indigo-500/25 mb-6 uppercase">
             <Sparkles className="w-3.5 h-3.5 animate-spin duration-3000" />
-            <span>Encrypted Delivery Enforcer Ready</span>
+            <span>Interactive Assets Sandbox Ready</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-display font-black tracking-tight leading-none text-zinc-900 dark:text-white max-w-4xl mx-auto uppercase">
@@ -817,17 +894,76 @@ export default function App() {
           
           {/* Main catalog items list */}
           <div className="w-full space-y-6">
+
+            {/* Elegant Circular Categories Slider Tray */}
+            <div className="py-4 border-b border-zinc-200/50 dark:border-white/5 select-none">
+              <div className="flex items-center gap-1.5 mb-3 px-1 text-[10px] font-mono text-zinc-400 dark:text-slate-500 uppercase tracking-widest font-bold">
+                <Compass className="w-3.5 h-3.5 text-indigo-400 animate-spin-slow" />
+                <span>Explore Categories & Downloads</span>
+              </div>
+              <div className="flex gap-4 sm:gap-6 pb-2 overflow-x-auto scrollbar-none snap-x items-center px-1">
+                {CIRCLE_CATEGORIES.map((circle) => {
+                  const isActive = activeCategory === circle.name;
+                  return (
+                    <button
+                      key={circle.name}
+                      onClick={() => {
+                        setActiveCategory(circle.name);
+                        // Trigger hint if Downloads is empty
+                        if (circle.isDownload && user.purchasedProducts.length === 0) {
+                          triggerToast("📥 Order items from Checkout to unlock instant offline file downloads!");
+                        }
+                      }}
+                      className="flex flex-col items-center shrink-0 snap-align-start focus:outline-none cursor-pointer group space-y-2"
+                    >
+                      {/* Circle container */}
+                      <div className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center p-[2px] transition-all duration-300 ${
+                        isActive 
+                          ? 'bg-gradient-to-tr from-indigo-500 via-purple-500 to-fuchsia-500 shadow-xl shadow-indigo-500/30 scale-105 ring-2 ring-indigo-500/20' 
+                          : 'bg-zinc-200 dark:bg-white/10 group-hover:scale-102 group-hover:bg-zinc-300 dark:group-hover:bg-white/20'
+                      }`}>
+                        <div className="w-full h-full rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-950 relative">
+                          <img 
+                            src={circle.image} 
+                            alt={circle.name}
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                          />
+                          {/* If downloads, overlay a premium animated download symbol sign */}
+                          {circle.isDownload && (
+                            <div className="absolute inset-0 bg-indigo-950/60 flex items-center justify-center backdrop-blur-[1px]">
+                              <svg className="w-5 h-5 text-indigo-200 animate-bounce" fill="none" stroke="currentColor" strokeWidth="2.8" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                              </svg>
+                            </div>
+                          )}
+                          <div className={`absolute inset-0 bg-black/10 dark:bg-black/25 transition-opacity duration-300 ${isActive ? 'opacity-0' : 'opacity-100 group-hover:opacity-45'}`} />
+                        </div>
+                      </div>
+                      
+                      {/* Name label */}
+                      <span className={`text-[10px] sm:text-[11px] font-mono font-bold tracking-tight transition-colors ${
+                        isActive 
+                          ? 'text-indigo-600 dark:text-indigo-400' 
+                          : 'text-zinc-500 dark:text-slate-400 group-hover:text-zinc-900 dark:group-hover:text-white'
+                      }`}>
+                        {circle.name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
             
             {/* Catalog Grid Bar Header */}
             <div className="flex flex-col sm:flex-row items-baseline sm:items-center justify-between gap-3 bg-white dark:bg-white/[0.02] p-4 border border-zinc-200/50 dark:border-white/10 rounded-2xl">
               <div>
-                <p className="text-xs font-mono text-zinc-500 dark:text-slate-400 uppercase">Assets Catalogue</p>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="text-sm font-sans font-bold text-zinc-800 dark:text-white">
-                    {sortedProducts.length} premium element{sortedProducts.length !== 1 ? 's' : ''} found
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-sans font-bold text-zinc-850 dark:text-white uppercase">
+                    {sortedProducts.length} Asset{sortedProducts.length !== 1 ? 's' : ''} Cataloged
                   </span>
                   {activeCategory !== 'All' && (
-                    <span className="text-xs font-mono bg-zinc-100 dark:bg-white/5 px-2 py-0.5 rounded text-zinc-500 dark:text-slate-300 border border-transparent dark:border-white/10">
+                    <span className="text-xs font-mono bg-zinc-100 dark:bg-white/5 px-2 py-0.5 rounded text-indigo-500 dark:text-indigo-400 border border-transparent dark:border-white/10 font-bold">
                       in {activeCategory}
                     </span>
                   )}
@@ -964,13 +1100,13 @@ export default function App() {
             <span className="font-sans font-bold text-sm text-zinc-750 dark:text-white uppercase tracking-tighter">
               Aether<span className="text-indigo-550 font-light">Vault</span>
             </span>
-            <p className="text-[10px] mt-1 text-zinc-450 dark:text-slate-500">© 2026 Sandbox Enforcer Marketplace. All rights reserved. Created in Cloud Native Workspace.</p>
+            <p className="text-[10px] mt-1 text-zinc-450 dark:text-slate-500">© 2026 Sandbox Asset Vault. All rights reserved.</p>
           </div>
 
           <div className="flex gap-4.5 text-[10px] font-semibold text-zinc-500">
             <span>PCI-DSS Secured Gateway</span>
             <span>•</span>
-            <span>External-Link Enforcer Policy</span>
+            <span>External Link Security Policy</span>
             <span>•</span>
             <span>No-Blob Zero Uploads</span>
           </div>
@@ -1084,6 +1220,194 @@ export default function App() {
               </button>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Side Sandbox Control Drawer Menu */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <div className="fixed inset-0 z-50 overflow-hidden">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMenuOpen(false)}
+              className="absolute inset-0 bg-zinc-950/75 backdrop-blur-xs cursor-pointer"
+            />
+
+            {/* Content panel */}
+            <div className="absolute inset-y-0 left-0 max-w-full flex">
+              <motion.div
+                initial={{ x: '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '-100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+                className="w-screen max-w-md bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-850 shadow-2xl flex flex-col"
+              >
+                {/* Header */}
+                <div className="p-5 border-b border-zinc-100 dark:border-zinc-900 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400">
+                      <Sparkles className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-sans font-black text-sm uppercase dark:text-zinc-100 tracking-tight">Customized Thumbnail</h3>
+                      <p className="text-[10px] font-mono text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-none">Studio Portal</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsMenuOpen(false)}
+                    className="p-1.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-100 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Drawer Body - Scrollable */}
+                <div className="flex-1 overflow-y-auto p-5 space-y-6">
+                  
+                  {/* Quick Action Navigation */}
+                  <div className="space-y-2">
+                    <span className="text-[9px] font-mono font-bold uppercase text-zinc-400 dark:text-zinc-500 tracking-wider">Navigation shortcuts</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          setActiveCategory('All');
+                        }}
+                        className="p-2.5 rounded-xl bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-900/50 dark:hover:bg-zinc-900 border border-zinc-100 dark:border-zinc-850 text-left text-xs font-semibold dark:text-zinc-200 cursor-pointer"
+                      >
+                        Explore Catalog
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          if (user.isLoggedIn) {
+                            setIsDashboardOpen(true);
+                          } else {
+                            setIsAuthModalOpen(true);
+                          }
+                        }}
+                        className="p-2.5 rounded-xl bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-900/50 dark:hover:bg-zinc-900 border border-zinc-100 dark:border-zinc-850 text-left text-xs font-semibold dark:text-zinc-200 cursor-pointer"
+                      >
+                        My Library
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Add Custom thumbnail form */}
+                  <div className="border border-indigo-100 dark:border-indigo-950 bg-indigo-50/15 dark:bg-indigo-950/10 p-4.5 rounded-2xl space-y-4">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
+                      <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-indigo-650 dark:text-indigo-400">Publish Customized Thumbnail</h4>
+                    </div>
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed -mt-1.5">
+                      Dynamically publish your custom assets with elegant custom image previews, thumbnail description subtitles, and custom pricing!
+                    </p>
+
+                    <form onSubmit={handleCustomAssetSubmit} className="space-y-3.5">
+                      <div>
+                        <label className="block text-[10px] font-mono text-zinc-450 dark:text-zinc-400 tracking-wide uppercase mb-1">Asset Name / Title</label>
+                        <input
+                          type="text"
+                          required
+                          value={customTitle}
+                          onChange={(e) => setCustomTitle(e.target.value)}
+                          placeholder="e.g. Modern UI Dashboard Pack"
+                          className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-800 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-mono text-zinc-455 dark:text-zinc-400 tracking-wide uppercase mb-1">Thumbnail Name / Label</label>
+                        <input
+                          type="text"
+                          required
+                          value={customShortDesc}
+                          onChange={(e) => setCustomShortDesc(e.target.value)}
+                          placeholder="e.g. Clean 24+ Layout Screen Components"
+                          className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-800 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-mono text-zinc-455 dark:text-zinc-400 tracking-wide uppercase mb-1">PNG Image / Preview URL</label>
+                        <input
+                          type="url"
+                          required
+                          value={customPreviewImage}
+                          onChange={(e) => setCustomPreviewImage(e.target.value)}
+                          placeholder="https://images.unsplash.com/photo-..."
+                          className="w-full text-xs p-2.5 bg-white dark:bg-zinc-150 border border-zinc-250 dark:border-zinc-800 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-mono text-zinc-455 dark:text-zinc-400 tracking-wide uppercase mb-1">Category</label>
+                          <select
+                            value={customCategory}
+                            onChange={(e) => setCustomCategory(e.target.value as any)}
+                            className="w-full text-xs p-2 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-800 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
+                          >
+                            <option value="Web Templates">Web Templates</option>
+                            <option value="UI Kits">UI Kits</option>
+                            <option value="Scripts">Scripts</option>
+                            <option value="Plugins">Plugins</option>
+                            <option value="Graphics">Graphics</option>
+                            <option value="SaaS Tools">SaaS Tools</option>
+                            <option value="AI Prompts">AI Prompts</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-mono text-zinc-455 dark:text-zinc-400 tracking-wide uppercase mb-1">Price ($USD)</label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="500"
+                            required
+                            value={customPrice}
+                            onChange={(e) => setCustomPrice(Number(e.target.value))}
+                            className="w-full text-xs p-2 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-800 rounded-xl outline-none focus:border-indigo-500 text-zinc-905 dark:text-white transition-colors"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-mono text-zinc-455 dark:text-zinc-400 tracking-wide uppercase mb-1">Digital File Source URL</label>
+                        <input
+                          type="url"
+                          required
+                          value={customDownloadUrl}
+                          onChange={(e) => setCustomDownloadUrl(e.target.value)}
+                          placeholder="https://drive.google.com/..."
+                          className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-800 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="w-full mt-2 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-sans font-bold text-xs rounded-xl active:scale-99 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+                      >
+                        Publish Customized Thumbnail 🚀
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* Sandbox helper instructions */}
+                  <div className="flex gap-2.5 p-3.5 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-150 dark:border-zinc-850 rounded-2xl">
+                    <Info className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
+                    <p className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-relaxed animate-pulse">
+                      Customized thumbnails persist inside active client storage! Easily add name, select custom category circles, specify PNG preview images, and try full shopping checkout flow instantly.
+                    </p>
+                  </div>
+
+                </div>
+              </motion.div>
+            </div>
+          </div>
         )}
       </AnimatePresence>
 

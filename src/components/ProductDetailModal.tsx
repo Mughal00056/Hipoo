@@ -318,88 +318,36 @@ export default function ProductDetailModal({
               )}
 
             </div>
-
             {/* Sticky/Side Action Panel */}
             <div className="space-y-6 lg:border-l lg:border-zinc-150 lg:dark:border-zinc-900 lg:pl-6">
               
-              {/* Product Specifications Meta list */}
-              <div>
-                <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-450 mb-3">Asset Specifications</h4>
-                <div className="space-y-2 bg-zinc-50 dark:bg-zinc-900/40 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-900/60 text-xs text-zinc-600 dark:text-zinc-400">
-                  <div className="flex items-center justify-between border-b border-zinc-200/50 dark:border-zinc-800/50 pb-2">
-                    <span className="font-medium text-zinc-400">File Size:</span>
-                    <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100">{product.fileSize}</span>
-                  </div>
-                  <div className="flex items-center justify-between border-b border-zinc-200/50 dark:border-zinc-800/50 pb-2">
-                    <span className="font-medium text-zinc-400">Asset Format:</span>
-                    <span className="font-mono font-semibold text-indigo-600 dark:text-indigo-400">{product.fileFormat}</span>
-                  </div>
-                  <div className="flex items-center justify-between border-b border-zinc-200/50 dark:border-zinc-800/50 pb-2">
-                    <span className="font-medium text-zinc-400">Released Version:</span>
-                    <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100">{product.version}</span>
-                  </div>
-                  <div className="flex items-center justify-between border-b border-zinc-200/50 dark:border-zinc-800/50 pb-2">
-                    <span className="font-medium text-zinc-400">Delivery Channel:</span>
-                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">{product.provider} Link</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-zinc-400">Release Date:</span>
-                    <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100">{product.dateCreated}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Secure Delivery Panel - Purchase Status check */}
-              <div className="p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-center">
-                <div className="flex justify-center mb-2">
-                  {isPurchased ? (
-                    <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                      <Unlock className="w-5 h-5" />
-                    </div>
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-400 dark:text-zinc-650 flex items-center justify-center">
-                      <Lock className="w-5 h-5" />
-                    </div>
-                  )}
-                </div>
-
-                <p className="text-xs font-sans font-bold text-zinc-900 dark:text-zinc-150">
-                  {isPurchased ? 'Security Lock Deactivated!' : 'Automated Link Enforcer'}
-                </p>
-                <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-1 max-w-[200px] mx-auto leading-normal">
-                  {isPurchased 
-                    ? 'Thank you for purchasing! Secure token verified.' 
-                    : 'Download URLs represent verified files locked until payment processing clears.'}
-                </p>
-
-                {isPurchased ? (
-                  <a
-                    id="unlocked-download-anchor"
-                    href={product.downloadUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 w-full inline-flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-sans font-semibold py-2.5 px-4 rounded-xl transition-colors cursor-pointer"
-                  >
-                    <span>Download from {product.provider}</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
-                ) : (
-                  <div className="mt-2 text-[10px] font-mono p-1 bg-zinc-100 dark:bg-zinc-900 rounded text-zinc-500 truncate select-all">
-                    https://aether-assets.secure/token-...
-                  </div>
-                )}
-              </div>
-
               {/* Instant Action CTA Panel */}
               <div className="space-y-2.5">
                 <div className="flex justify-between items-baseline px-1.5">
-                  <span className="text-xs font-mono text-zinc-450 uppercase">License Cost:</span>
+                  <span className="text-xs font-mono text-zinc-400 uppercase">License Cost:</span>
                   <span className="font-mono text-2xl font-bold text-zinc-900 dark:text-zinc-50">
                     {product.price === 0 ? 'FREE' : `$${product.price}`}
                   </span>
                 </div>
 
-                {!isPurchased && (
+                {isPurchased ? (
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-emerald-500 flex items-center gap-1.5 justify-center py-1 bg-emerald-500/10 rounded-lg">
+                      <Unlock className="w-3.5 h-3.5" />
+                      <span>Unlocked & Active Sandbox License Owned</span>
+                    </p>
+                    <a
+                      id="unlocked-download-anchor"
+                      href={product.downloadUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-3 inline-flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-sans font-bold text-sm rounded-xl transition-all cursor-pointer shadow-md"
+                    >
+                      <span>Download File Asset ({product.provider})</span>
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  </div>
+                ) : (
                   <>
                     {/* Buy now */}
                     <button

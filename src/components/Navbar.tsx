@@ -5,8 +5,6 @@ import {
   Heart, 
   User, 
   Search, 
-  Sun, 
-  Moon, 
   Terminal, 
   Cpu, 
   Sparkles, 
@@ -15,7 +13,8 @@ import {
   Layout,
   Layers,
   Code,
-  Image
+  Image,
+  Menu
 } from 'lucide-react';
 import { UserProfile, CartItem } from '../types';
 
@@ -33,6 +32,7 @@ interface NavbarProps {
   setIsDashboardOpen: (open: boolean) => void;
   onLogout: () => void;
   onBrandClick: () => void;
+  onMenuClick: () => void;
 }
 
 const CATEGORIES = [
@@ -70,33 +70,43 @@ export default function Navbar({
   setIsAuthModalOpen,
   setIsDashboardOpen,
   onLogout,
-  onBrandClick
+  onBrandClick,
+  onMenuClick
 }: NavbarProps) {
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-  };
-
   return (
     <header className="sticky top-0 z-40 border-b border-zinc-200/80 dark:border-white/10 bg-white/80 dark:bg-[#0a0a0a]/90 backdrop-blur-md transition-colors duration-200">
       <div id="nav-container" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20 gap-4">
           
-          {/* Logo Brand */}
-          <button 
-            id="btn-brand"
-            onClick={onBrandClick}
-            className="flex items-center gap-2.5 transition-transform hover:scale-[1.01] cursor-pointer text-left"
-          >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-fuchsia-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/25">
-              <Sparkles className="w-5.5 h-5.5 stroke-[1.8]" />
-            </div>
-            <div>
-              <span className="font-sans font-black text-lg sm:text-xl tracking-tighter bg-gradient-to-r from-zinc-900 to-indigo-950 dark:from-white dark:to-indigo-250 bg-clip-text text-transparent uppercase">
-                Aether<span className="text-indigo-500 font-light">Vault</span>
-              </span>
-              <p className="text-[10px] font-mono tracking-wider text-zinc-500 dark:text-slate-400 -mt-1 uppercase">Asset Vault Portal</p>
-            </div>
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Left Menu - Customized Thumbnail Text Trigger */}
+            <button
+              id="nav-side-menu-trigger"
+              onClick={onMenuClick}
+              className="px-3.5 py-2 font-sans font-bold text-xs uppercase text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-xl transition-all cursor-pointer mr-2 flex items-center gap-1.5 border border-indigo-100 dark:border-indigo-950 bg-indigo-50/20 dark:bg-indigo-950/20"
+              title="Open Customized Thumbnail Editor"
+            >
+              <Sparkles className="w-3.5 h-3.5 animate-pulse text-indigo-500" />
+              <span>Customized Thumbnail</span>
+            </button>
+
+            {/* Logo Brand */}
+            <button 
+              id="btn-brand"
+              onClick={onBrandClick}
+              className="flex items-center gap-2.5 transition-transform hover:scale-[1.01] cursor-pointer text-left"
+            >
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-fuchsia-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/25">
+                <Sparkles className="w-5.5 h-5.5 stroke-[1.8]" />
+              </div>
+              <div>
+                <span className="font-sans font-black text-lg sm:text-xl tracking-tighter bg-gradient-to-r from-zinc-900 to-indigo-950 dark:from-white dark:to-indigo-250 bg-clip-text text-transparent uppercase">
+                  Aether<span className="text-indigo-500 font-light">Vault</span>
+                </span>
+                <p className="text-[10px] font-mono tracking-wider text-zinc-500 dark:text-slate-400 -mt-1 uppercase">Asset Vault Portal</p>
+              </div>
+            </button>
+          </div>
 
           {/* Search Bar */}
           <div className="hidden md:flex flex-1 max-w-sm relative">
@@ -115,15 +125,6 @@ export default function Navbar({
 
           {/* Controls */}
           <div className="flex items-center gap-2 sm:gap-3.5">
-            {/* Theme Toggle */}
-            <button
-              id="theme-toggle-btn"
-              onClick={toggleTheme}
-              className="p-2.5 text-zinc-500 hover:text-zinc-900 dark:text-slate-450 dark:hover:text-white rounded-lg bg-zinc-100/50 dark:bg-white/5 hover:bg-zinc-100 dark:hover:bg-white/10 border border-transparent dark:border-white/10 transition-colors cursor-pointer"
-              title={theme === 'dark' ? 'Activate Light Mode' : 'Activate Dark Mode'}
-            >
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
 
             {/* Wishlist Indicator (Leads to Dashboard wishlist) */}
             <button
@@ -165,7 +166,7 @@ export default function Navbar({
             </button>
 
             {/* User Profile / Login */}
-            {user.isLoggedIn && (
+            {user.isLoggedIn ? (
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <button
                   id="user-dashboard-trigger"
@@ -190,6 +191,15 @@ export default function Navbar({
                   <LogOut className="w-4 h-4" />
                 </button>
               </div>
+            ) : (
+              <button
+                id="btn-login-trigger"
+                onClick={() => setIsAuthModalOpen(true)}
+                className="flex items-center gap-1.5 font-sans font-semibold text-xs sm:text-sm text-zinc-100 bg-zinc-900 dark:bg-indigo-600 dark:text-white py-2 px-4 sm:px-5 rounded-full hover:bg-zinc-850 dark:hover:bg-indigo-700 active:scale-98 transition-all cursor-pointer shadow-lg shadow-indigo-500/20"
+              >
+                <User className="w-4 h-4 stroke-[2.2]" />
+                <span>Sign In / Sign Up</span>
+              </button>
             )}
 
           </div>
