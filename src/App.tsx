@@ -34,6 +34,7 @@ import CartDrawer from './components/CartDrawer';
 import CheckoutModal from './components/CheckoutModal';
 import Dashboard from './components/Dashboard';
 import AuthModal from './components/AuthModal';
+import { syncUserProfile, getUserProfile, recordPurchase, getUserPurchases } from './firebase';
 
 const CIRCLE_CATEGORIES = [
   { name: 'All', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=150&h=150' },
@@ -387,7 +388,7 @@ export default function App() {
   };
 
   // Add to Wishlist Toggle
-  const handleToggleWishlist = (productId: string) => {
+  const handleToggleWishlist = async (productId: string) => {
     const exists = user.wishlistIds.includes(productId);
     const updatedWishlist = exists
       ? user.wishlistIds.filter(id => id !== productId)
@@ -398,15 +399,33 @@ export default function App() {
       wishlistIds: updatedWishlist
     }));
 
+    if (user.isLoggedIn && user.email) {
+      try {
+        await syncUserProfile(user.email, user.name, user.avatar, updatedWishlist);
+      } catch (err) {
+        console.error('Wishlist cloud sync failed:', err);
+      }
+    }
+
     triggerToast(exists ? '💔 Item removed from saved Wishlist.' : '❤️ Saved to your Wishlist!');
   };
 
   // Direct remove from wishlist inside dashboard
-  const handleRemoveFromWishlist = (productId: string) => {
+  const handleRemoveFromWishlist = async (productId: string) => {
+    const updatedWishlist = user.wishlistIds.filter(id => id !== productId);
     setUser(prev => ({
       ...prev,
-      wishlistIds: prev.wishlistIds.filter(id => id !== productId)
+      wishlistIds: updatedWishlist
     }));
+
+    if (user.isLoggedIn && user.email) {
+      try {
+        await syncUserProfile(user.email, user.name, user.avatar, updatedWishlist);
+      } catch (err) {
+        console.error('Wishlist cloud sync failed:', err);
+      }
+    }
+
     triggerToast('💔 Item removed from saved Wishlist.');
   };
 
@@ -469,7 +488,7 @@ export default function App() {
   };
 
   // Checkout Payment cleared callback
-  const handlePurchaseSuccess = (email: string, itemsPaid: { id: string; price: number; title: string; downloadUrl: string; provider: DownloadProvider }[]) => {
+  const handlePurchaseSuccess = async (email: string, itemsPaid: { id: string; price: number; title: string; downloadUrl: string; provider: DownloadProvider }[]) => {
     const currentDateStr = new Date().toISOString().split('T')[0];
     
     // Convert paid items into lifetime license logs
@@ -484,18 +503,41 @@ export default function App() {
       unlockToken: `LIC-CODE-${item.provider.toUpperCase().split(' ')[0]}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
     }));
 
+    const finalPurchasesList = [...user.purchasedProducts, ...newPurchases];
+
     setUser(prev => ({
       ...prev,
       email: prev.email || email,
       isLoggedIn: true,
       name: prev.name || email.split('@')[0],
       avatar: prev.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120',
-      purchasedProducts: [...prev.purchasedProducts, ...newPurchases]
+      purchasedProducts: finalPurchasesList
     }));
 
     // Reset shopping cart
     setCart([]);
-    triggerToast('🎉 Payment Verified! Digital links unlocked successfully.');
+
+    if (email) {
+      const activeEmail = user.email || email;
+      const activeName = user.name || email.split('@')[0];
+      const activeAvatar = user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120';
+      
+      try {
+        // Sync user profile first
+        await syncUserProfile(activeEmail, activeName, activeAvatar, user.wishlistIds);
+        
+        // Write each single purchase record conforming to Firebase rules and schema
+        for (const p of newPurchases) {
+          await recordPurchase(activeEmail, p);
+        }
+        triggerToast('🎉 Payment Verified! Digital links unlocked and synced to cloud.');
+      } catch (err) {
+        console.error("Failed to sync purchase records to Firebase:", err);
+        triggerToast('🎉 Payment Verified! Digital links unlocked successfully (Offline Mode).');
+      }
+    } else {
+      triggerToast('🎉 Payment Verified! Digital links unlocked successfully.');
+    }
   };
 
   // Review Submissions Action
@@ -546,15 +588,51 @@ export default function App() {
   };
 
   // Sign In custom profile
-  const handleLoginSuccess = (name: string, email: string, avatar: string) => {
-    setUser(prev => ({
-      ...prev,
-      name,
-      email,
-      avatar,
-      isLoggedIn: true
-    }));
-    triggerToast(`👋 Welcome back, ${name}! Your dev hub is initialized.`);
+  const handleLoginSuccess = async (name: string, email: string, avatar: string) => {
+    try {
+      // 1. Fetch profile from Firestore
+      const firebaseProfile = await getUserProfile(email);
+      let finalName = name;
+      let finalAvatar = avatar;
+      let finalWishlist = user.wishlistIds;
+
+      if (firebaseProfile) {
+        finalName = firebaseProfile.name || finalName;
+        finalAvatar = firebaseProfile.avatar || finalAvatar;
+        finalWishlist = firebaseProfile.wishlistIds || [];
+      } else {
+        // Create user profile in Firestore
+        await syncUserProfile(email, finalName, finalAvatar, finalWishlist);
+      }
+
+      // 2. Load historical purchases from Firestore
+      const firebasePurchases = await getUserPurchases(email);
+      const mergedPurchasedProducts = firebasePurchases && firebasePurchases.length > 0 
+        ? firebasePurchases 
+        : user.purchasedProducts;
+
+      setUser({
+        email,
+        name: finalName,
+        avatar: finalAvatar,
+        isLoggedIn: true,
+        wishlistIds: finalWishlist,
+        purchasedProducts: mergedPurchasedProducts
+      });
+
+      triggerToast(`👋 Welcome back, ${finalName}! Your Firebase profile was synchronized successfully.`);
+    } catch (err) {
+      console.error(err);
+      // Fallback to local state if offline or failed rules
+      setUser(prev => ({
+        ...prev,
+        name,
+        email,
+        avatar,
+        isLoggedIn: true
+      }));
+      triggerToast(`👋 Welcome back, ${name}! (Local guest session initialized)`);
+    }
   };
 
   // Edit core credentials profile metrics
