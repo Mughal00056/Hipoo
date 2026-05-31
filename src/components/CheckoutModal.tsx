@@ -1,0 +1,397 @@
+import React, { useState } from 'react';
+import { motion } from 'motion/react';
+import { 
+  X, 
+  CreditCard, 
+  CheckCircle, 
+  Lock, 
+  ExternalLink,
+  Loader2, 
+  Download, 
+  Copy,
+  Check,
+  ShieldAlert
+} from 'lucide-react';
+import { Product, CartItem, DownloadProvider } from '../types';
+
+interface CheckoutModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  cart: CartItem[];
+  subtotal: number;
+  discountAmount: number;
+  discountCode: string;
+  onPurchaseSuccess: (email: string, itemsPaid: { id: string; price: number; title: string; downloadUrl: string; provider: DownloadProvider }[]) => void;
+  userEmail: string;
+}
+
+export default function CheckoutModal({
+  isOpen,
+  onClose,
+  cart,
+  subtotal,
+  discountAmount,
+  discountCode,
+  onPurchaseSuccess,
+  userEmail
+}: CheckoutModalProps) {
+  const [email, setEmail] = useState<string>(userEmail || '');
+  const [fullName, setFullName] = useState<string>('');
+  const [cardNumber, setCardNumber] = useState<string>('');
+  const [expiry, setExpiry] = useState<string>('');
+  const [cvc, setCvc] = useState<string>('');
+  
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [step, setStep] = useState<'checkout' | 'success'>('checkout');
+  const [errorText, setErrorText] = useState<string>('');
+  const [copiedId, setCopiedId] = useState<string>('');
+  const [unlockedKeys, setUnlockedKeys] = useState<{ productId: string; token: string }[]>([]);
+
+  if (!isOpen) return null;
+
+  const actualAmountDue = Math.max(0, subtotal - discountAmount);
+
+  // Format credit card string nicely as user types (xxxx xxxx xxxx xxxx)
+  const handleCardInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let input = e.target.value.replace(/\D/g, '');
+    if (input.length > 16) input = input.slice(0, 16);
+    const parts = [];
+    for (let i = 0; i < input.length; i += 4) {
+      parts.push(input.slice(i, i + 4));
+    }
+    setCardNumber(parts.join(' '));
+  };
+
+  // Format expiry nicely (MM/YY)
+  const handleExpiryInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let input = e.target.value.replace(/\D/g, '');
+    if (input.length > 4) input = input.slice(0, 4);
+    if (input.length >= 2) {
+      setExpiry(`${input.slice(0, 2)}/${input.slice(2)}`);
+    } else {
+      setExpiry(input);
+    }
+  };
+
+  const handleCvcInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value.replace(/\D/g, '').slice(0, 3);
+    setCvc(input);
+  };
+
+  // Trigger copy
+  const handleCopy = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(''), 2000);
+  };
+
+  const handlePaySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorText('');
+
+    if (!email.trim() || !email.includes('@')) {
+      setErrorText('Please enter a valid developer email address.');
+      return;
+    }
+
+    if (actualAmountDue > 0) {
+      if (!fullName.trim()) {
+        setErrorText('Please enter the cardholder Name.');
+        return;
+      }
+      if (cardNumber.replace(/\s+/g, '').length < 16) {
+        setErrorText('Please enter a valid 16-digit credit card.');
+        return;
+      }
+      if (expiry.length < 5) {
+        setErrorText('Please specify expiration details in MM/YY format.');
+        return;
+      }
+      if (cvc.length < 3) {
+        setErrorText('Pin code (CVC) must be at least 3 digits.');
+        return;
+      }
+    }
+
+    // Launch loading spinners
+    setIsProcessing(true);
+    
+    setTimeout(() => {
+      // Generate keys
+      const generated = cart.map(item => ({
+        productId: item.product.id,
+        token: `TKN-${item.product.provider.toUpperCase().split(' ')[0]}-${Math.random().toString(36).substring(2, 8).toUpperCase()}-${Date.now().toString().slice(-4)}`
+      }));
+      setUnlockedKeys(generated);
+
+      const purchasePayload = cart.map(item => ({
+        id: item.product.id,
+        price: item.product.price,
+        title: item.product.title,
+        downloadUrl: item.product.downloadUrl,
+        provider: item.product.provider
+      }));
+
+      onPurchaseSuccess(email, purchasePayload);
+      
+      setIsProcessing(false);
+      setStep('success');
+    }, 2200);
+  };
+
+  return (
+    <div id="checkout-modal-panel" className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-md">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col"
+      >
+        {/* Header bar */}
+        <div className="px-6 py-5 border-b border-zinc-150 dark:border-zinc-900 bg-zinc-50 dark:bg-zinc-900/10 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Lock className="w-4 h-4 text-emerald-500" />
+            <h3 className="font-sans font-bold text-sm text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
+              {step === 'checkout' ? 'Aether Encrypted Gateway' : 'Order Assets Certified'}
+            </h3>
+          </div>
+          {step === 'checkout' && (
+            <button
+              id="checkout-close-top-btn"
+              onClick={onClose}
+              className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-100 p-1 rounded-lg transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
+        </div>
+
+        {/* Content switch */}
+        {step === 'checkout' ? (
+          <form onSubmit={handlePaySubmit} className="p-6 space-y-4">
+            
+            {/* Cart summary preview */}
+            <div className="p-4 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/30 text-xs">
+              <span className="font-mono text-zinc-400 uppercase tracking-widest text-[10px]">Purchase elements ({cart.length})</span>
+              <div className="space-y-1 mt-1 font-sans">
+                {cart.map(item => (
+                  <div key={item.product.id} className="flex justify-between font-medium">
+                    <span className="truncate text-zinc-700 dark:text-zinc-300 max-w-[250px]">{item.product.title}</span>
+                    <span className="font-mono font-bold text-zinc-900 dark:text-zinc-150">${item.product.price}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="pt-2 border-t border-zinc-200 dark:border-zinc-850 mt-2 flex justify-between items-center text-sm font-bold text-indigo-600 dark:text-indigo-400">
+                <span>Secure Total Due:</span>
+                <span className="font-mono">${actualAmountDue}</span>
+              </div>
+            </div>
+
+            {/* Form controls */}
+            <div className="space-y-3">
+              {/* Product email */}
+              <div>
+                <label className="block text-[10px] font-mono text-zinc-405 dark:text-zinc-400 uppercase tracking-wide mb-1">Receipt & Delivery Email</label>
+                <input
+                  id="checkout-input-email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@company.com"
+                  className="w-full text-xs p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-805 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
+                />
+              </div>
+
+              {actualAmountDue > 0 ? (
+                <>
+                  {/* Card Name */}
+                  <div>
+                    <label className="block text-[10px] font-mono text-zinc-405 dark:text-zinc-400 uppercase tracking-wide mb-1">Cardholder Name</label>
+                    <input
+                      id="card-name-field"
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="Alexander Hamilton"
+                      className="w-full text-xs p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-805 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors uppercase"
+                    />
+                  </div>
+
+                  {/* Card digits */}
+                  <div>
+                    <label className="block text-[10px] font-mono text-zinc-405 dark:text-zinc-400 uppercase tracking-wide mb-1">Card Number</label>
+                    <div className="relative">
+                      <input
+                        id="card-number-field"
+                        type="text"
+                        value={cardNumber}
+                        onChange={handleCardInput}
+                        placeholder="4111 2222 3333 4444"
+                        className="w-full pl-9 pr-3 text-xs p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-805 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
+                      />
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-400">
+                        <CreditCard className="w-4 h-4" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Grid CVV or Expiry */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-mono text-zinc-405 dark:text-zinc-400 uppercase tracking-wide mb-1">Expiration (MM/YY)</label>
+                      <input
+                        id="card-expiry-field"
+                        type="text"
+                        value={expiry}
+                        onChange={handleExpiryInput}
+                        placeholder="12/28"
+                        className="w-full text-center text-xs p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-805 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-mono text-zinc-405 dark:text-zinc-400 uppercase tracking-wide mb-1">Security Code (CVC)</label>
+                      <input
+                        id="card-cvc-field"
+                        type="password"
+                        value={cvc}
+                        onChange={handleCvcInput}
+                        placeholder="•••"
+                        className="w-full text-center text-xs p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-805 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
+                      />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="p-3 bg-indigo-50/40 dark:bg-indigo-950/25 border border-indigo-100 dark:border-indigo-900/50 rounded-xl text-left">
+                  <p className="text-xs text-indigo-600 dark:text-indigo-400 font-sans font-semibold">Free License Selected</p>
+                  <p className="text-[11px] text-zinc-505 dark:text-zinc-400 mt-0.5">Under applied promotional factors, this transaction contains $0 debt. No bank elements are requested.</p>
+                </div>
+              )}
+            </div>
+
+            {errorText && (
+              <p className="text-xs text-red-500 font-medium bg-red-50 dark:bg-red-950/30 p-2.5 rounded-lg border border-red-150 dark:border-red-900/40">{errorText}</p>
+            )}
+
+            {isProcessing ? (
+              <button
+                id="checkout-pay-btn-loading"
+                type="button"
+                disabled
+                className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 opacity-90"
+              >
+                <Loader2 className="w-4.5 h-4.5 animate-spin" />
+                <span className="font-sans text-xs sm:text-sm">Verifying blockchain token registry...</span>
+              </button>
+            ) : (
+              <button
+                id="checkout-pay-btn"
+                type="submit"
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-sans font-bold text-xs sm:text-sm rounded-xl cursor-pointer shadow-md shadow-indigo-500/10 flex items-center justify-center gap-2"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>
+                  {actualAmountDue === 0 ? 'Claim License Free' : `Securely Pay $${actualAmountDue}`}
+                </span>
+              </button>
+            )}
+
+            <div className="flex justify-center items-center gap-1.5 text-[10px] text-zinc-400">
+              <span>🔒 PCI-DSS Compliant Encryption Standard</span>
+            </div>
+
+          </form>
+        ) : (
+          /* SUCCESS STATE PANEL */
+          <div className="p-6 text-center space-y-5">
+            
+            <div className="space-y-2">
+              <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
+                <CheckCircle className="w-7 h-7" />
+              </div>
+              <h2 className="text-lg font-sans font-bold text-zinc-900 dark:text-white">Transaction Complete!</h2>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto">
+                Your secure licenses have been written and attached. Check your digital dashboard to view, copy, or reload links.
+              </p>
+            </div>
+
+            {/* Generated Unlocked Assets */}
+            <div className="space-y-3 text-left">
+              <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest pl-1">Unlocked Download Tokens</span>
+              <div className="space-y-2.5">
+                {cart.map(item => {
+                  const matchingToken = unlockedKeys.find(k => k.productId === item.product.id)?.token || 'TOKEN-VERIFIED';
+                  return (
+                    <div
+                      key={item.product.id}
+                      className="p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-150 dark:border-zinc-850 rounded-xl"
+                    >
+                      <div className="flex items-center justify-between gap-1 mb-1">
+                        <span className="text-[10px] font-semibold text-zinc-500 truncate max-w-[200px]">{item.product.title}</span>
+                        <span className="text-[9px] font-mono bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-400 py-0.5 px-1.5 rounded">
+                          {item.product.provider} Secure
+                        </span>
+                      </div>
+
+                      {/* Token display */}
+                      <div className="flex justify-between items-center gap-2 bg-white dark:bg-zinc-950 p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-[11px] font-mono mb-2">
+                        <span className="text-zinc-600 dark:text-zinc-300 truncate">{matchingToken}</span>
+                        <button
+                          id={`copy-token-${item.product.id}`}
+                          onClick={() => handleCopy(matchingToken, item.product.id)}
+                          className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
+                          title="Copy Unlock License Key"
+                        >
+                          {copiedId === item.product.id ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+
+                      {/* Download Link anchor */}
+                      <a
+                        id={`direct-dl-${item.product.id}`}
+                        href={item.product.downloadUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full inline-flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-sans font-semibold py-2 px-3 rounded-lg transition-colors cursor-pointer"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Instant Download Link</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Quick close redirect buttons */}
+            <div className="pt-3 border-t border-zinc-150 dark:border-zinc-900 flex flex-col gap-2">
+              <button
+                id="success-dashboard-cta"
+                onClick={() => {
+                  onClose();
+                  // Trigger open dashboard which displays downloads
+                  const dashboardTrig = document.getElementById('user-dashboard-trigger');
+                  if (dashboardTrig) dashboardTrig.click();
+                }}
+                className="w-full py-2.5 bg-zinc-900 border hover:bg-zinc-850 dark:bg-white dark:text-zinc-950 font-sans font-bold text-xs sm:text-sm rounded-xl cursor-pointer"
+              >
+                View Purchased Products Dashboard
+              </button>
+              <button
+                id="success-close-btn"
+                onClick={onClose}
+                className="text-xs text-zinc-400 hover:text-zinc-650 hover:underline cursor-pointer"
+              >
+                Close & Return to Assets Catalogue
+              </button>
+            </div>
+
+          </div>
+        )}
+
+      </motion.div>
+    </div>
+  );
+}

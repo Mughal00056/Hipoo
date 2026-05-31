@@ -1,0 +1,217 @@
+import { motion, AnimatePresence } from 'motion/react';
+import { 
+  ShoppingBag, 
+  Heart, 
+  User, 
+  Search, 
+  Sun, 
+  Moon, 
+  Terminal, 
+  Cpu, 
+  Sparkles, 
+  Compass, 
+  LogOut 
+} from 'lucide-react';
+import { UserProfile, CartItem } from '../types';
+
+interface NavbarProps {
+  theme: 'light' | 'dark';
+  setTheme: (theme: 'light' | 'dark') => void;
+  cart: CartItem[];
+  setIsCartOpen: (open: boolean) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  activeCategory: string;
+  setActiveCategory: (category: string) => void;
+  user: UserProfile;
+  setIsAuthModalOpen: (open: boolean) => void;
+  setIsDashboardOpen: (open: boolean) => void;
+  onLogout: () => void;
+  onBrandClick: () => void;
+}
+
+const CATEGORIES = [
+  'All',
+  'Web Templates',
+  'UI Kits',
+  'Scripts',
+  'Plugins',
+  'Graphics',
+  'SaaS Tools',
+  'AI Prompts'
+];
+
+export default function Navbar({
+  theme,
+  setTheme,
+  cart,
+  setIsCartOpen,
+  searchQuery,
+  setSearchQuery,
+  activeCategory,
+  setActiveCategory,
+  user,
+  setIsAuthModalOpen,
+  setIsDashboardOpen,
+  onLogout,
+  onBrandClick
+}: NavbarProps) {
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
+
+  return (
+    <header className="sticky top-0 z-40 border-b border-zinc-200/80 dark:border-white/10 bg-white/80 dark:bg-[#0a0a0a]/90 backdrop-blur-md transition-colors duration-200">
+      <div id="nav-container" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-20 gap-4">
+          
+          {/* Logo Brand */}
+          <button 
+            id="btn-brand"
+            onClick={onBrandClick}
+            className="flex items-center gap-2.5 transition-transform hover:scale-[1.01] cursor-pointer text-left"
+          >
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-fuchsia-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/25">
+              <Sparkles className="w-5.5 h-5.5 stroke-[1.8]" />
+            </div>
+            <div>
+              <span className="font-sans font-black text-lg sm:text-xl tracking-tighter bg-gradient-to-r from-zinc-900 to-indigo-950 dark:from-white dark:to-indigo-250 bg-clip-text text-transparent uppercase">
+                Aether<span className="text-indigo-500 font-light">Vault</span>
+              </span>
+              <p className="text-[10px] font-mono tracking-wider text-zinc-500 dark:text-slate-400 -mt-1 uppercase">Asset Vault Portal</p>
+            </div>
+          </button>
+
+          {/* Search Bar */}
+          <div className="hidden md:flex flex-1 max-w-sm relative">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Search className="h-4.2 w-4.2 text-zinc-400 dark:text-slate-500" />
+            </div>
+            <input
+              id="search-input-header"
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search templates, UI kits, scripts..."
+              className="w-full pl-10 pr-5 py-2.5 text-sm bg-zinc-100 dark:bg-white/5 border border-transparent dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 focus:border-indigo-500 dark:focus:border-indigo-500 rounded-full outline-none text-zinc-900 dark:text-slate-100 placeholder-zinc-400 dark:placeholder-slate-500 focus:ring-1 focus:ring-indigo-500/25 transition-all"
+            />
+          </div>
+
+          {/* Controls */}
+          <div className="flex items-center gap-2 sm:gap-3.5">
+            {/* Theme Toggle */}
+            <button
+              id="theme-toggle-btn"
+              onClick={toggleTheme}
+              className="p-2.5 text-zinc-500 hover:text-zinc-900 dark:text-slate-450 dark:hover:text-white rounded-lg bg-zinc-100/50 dark:bg-white/5 hover:bg-zinc-100 dark:hover:bg-white/10 border border-transparent dark:border-white/10 transition-colors cursor-pointer"
+              title={theme === 'dark' ? 'Activate Light Mode' : 'Activate Dark Mode'}
+            >
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+
+            {/* Wishlist Indicator (Leads to Dashboard wishlist) */}
+            <button
+              id="wishlist-trigger-btn"
+              onClick={() => {
+                if (user.isLoggedIn) {
+                  setIsDashboardOpen(true);
+                  // Ensure we show wishlist
+                  setTimeout(() => {
+                    const wishTab = document.getElementById('tab-wishlist');
+                    if (wishTab) wishTab.click();
+                  }, 100);
+                } else {
+                  setIsAuthModalOpen(true);
+                }
+              }}
+              className="p-2.5 text-zinc-500 hover:text-red-500 dark:text-slate-450 dark:hover:text-red-400 rounded-lg bg-zinc-100/50 dark:bg-white/5 hover:bg-zinc-100 dark:hover:bg-white/10 border border-transparent dark:border-white/10 transition-colors relative cursor-pointer"
+              title="My Saved Wishlist"
+            >
+              <Heart className="w-5 h-5" />
+              {user.wishlistIds.length > 0 && (
+                <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-zinc-950" />
+              )}
+            </button>
+
+            {/* Shopping Cart Trigger */}
+            <button
+              id="cart-trigger-btn"
+              onClick={() => setIsCartOpen(true)}
+              className="p-2.5 text-zinc-500 hover:text-indigo-600 dark:text-slate-450 dark:hover:text-indigo-400 rounded-lg bg-zinc-100/50 dark:bg-white/5 hover:bg-zinc-100 dark:hover:bg-white/10 border border-transparent dark:border-white/10 transition-colors relative cursor-pointer"
+              title="View Cart"
+            >
+              <ShoppingBag className="w-5 h-5" />
+              {cart.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-indigo-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm">
+                  {cart.length}
+                </span>
+              )}
+            </button>
+
+            {/* User Profile / Login */}
+            {user.isLoggedIn ? (
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <button
+                  id="user-dashboard-trigger"
+                  onClick={() => setIsDashboardOpen(true)}
+                  className="flex items-center gap-2 p-1.5 pr-2.5 sm:p-2 sm:pr-3.5 rounded-lg bg-indigo-50/50 hover:bg-indigo-50 dark:bg-white/5 dark:hover:bg-white/10 text-indigo-600 dark:text-indigo-400 border border-indigo-100/50 dark:border-white/10 transition-all cursor-pointer"
+                >
+                  <img
+                    src={user.avatar}
+                    alt={user.name}
+                    className="w-6.5 h-6.5 rounded-full object-cover ring-1 ring-indigo-300 dark:ring-indigo-700"
+                  />
+                  <span className="hidden sm:inline text-xs font-medium tracking-tight truncate max-w-[80px]">
+                    {user.name.split(' ')[0]}
+                  </span>
+                </button>
+                <button
+                  id="btn-logout"
+                  onClick={onLogout}
+                  className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                  title="Logout Account"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                id="btn-login-trigger"
+                onClick={() => setIsAuthModalOpen(true)}
+                className="flex items-center gap-1.5 font-sans font-semibold text-xs sm:text-sm text-zinc-100 bg-zinc-900 dark:bg-indigo-600 dark:text-white py-2 px-4 sm:px-5 rounded-full hover:bg-zinc-850 dark:hover:bg-indigo-700 active:scale-98 transition-all cursor-pointer shadow-lg shadow-indigo-500/20"
+              >
+                <User className="w-4 h-4 stroke-[2.2]" />
+                <span>Sign In</span>
+              </button>
+            )}
+
+          </div>
+        </div>
+
+        {/* Categories Bar */}
+        <div className="border-t border-zinc-100 dark:border-white/10 py-2 sm:py-3.5 overflow-x-auto flex items-center scrollbar-none">
+          <div className="flex gap-1.5 sm:gap-2">
+            {CATEGORIES.map((cat) => {
+              const isActive = activeCategory === cat;
+              return (
+                <button
+                  id={`cat-btn-${cat.toLowerCase().replace(/\s+/g, '-')}`}
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={`px-4 py-1.5 rounded-full text-xs font-sans font-medium transition-all duration-200 whitespace-nowrap cursor-pointer ${
+                    isActive
+                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
+                      : 'bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-slate-400 hover:bg-zinc-200/70 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white'
+                  }`}
+                >
+                  {cat}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+      </div>
+    </header>
+  );
+}

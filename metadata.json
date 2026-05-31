@@ -1,0 +1,6 @@
+{
+  "name": "Digital Assets Marketplace",
+  "description": "A premium hub to browse, purchase, and get instant secure access to high-quality digital templates, UI kits, SaaS scripts, graphics, AI prompts, and developer tools.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
