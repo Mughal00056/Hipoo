@@ -69,13 +69,13 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
   };
 
   return (
-    <div id="auth-modal-panel-root" className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-zinc-950/75 backdrop-blur-xs">
+    <div id="auth-modal-panel-root" className="fixed inset-0 z-50 bg-zinc-950/75 backdrop-blur-xs flex justify-center items-start sm:items-center p-4 overflow-y-auto min-h-screen">
       
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="relative bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 rounded-3xl w-full max-w-md shadow-2xl p-6 sm:p-8"
+        className="relative my-auto bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 rounded-3xl w-full max-w-sm sm:max-w-md shadow-2xl p-5 sm:p-7"
       >
         
         {/* Close */}
@@ -88,18 +88,18 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
         </button>
 
         {/* Brand Display */}
-        <div className="text-center space-y-2 mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-650 dark:text-indigo-400 flex items-center justify-center mx-auto shadow-inner">
-            <Sparkles className="w-6 h-6 animate-pulse" />
+        <div className="text-center space-y-1 mb-4">
+          <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-650 dark:text-indigo-400 flex items-center justify-center mx-auto shadow-inner">
+            <Sparkles className="w-5 h-5 animate-pulse" />
           </div>
-          <h3 className="text-lg font-sans font-bold text-zinc-900 dark:text-zinc-50 uppercase tracking-tight">Portal Membership</h3>
-          <p className="text-xs text-zinc-400 max-w-xs mx-auto leading-normal">
-            Welcome to the AetherVault secure asset sandbox. Join or access instantly.
+          <h3 className="text-base font-sans font-bold text-zinc-900 dark:text-zinc-50 uppercase tracking-tight">Portal Membership</h3>
+          <p className="text-[11px] text-zinc-400 max-w-xs mx-auto leading-normal">
+            Welcome to the AetherVault secure asset sandbox.
           </p>
         </div>
 
         {/* Tabs Control */}
-        <div className="flex bg-zinc-100 dark:bg-zinc-900/80 p-1 rounded-xl mb-6">
+        <div className="flex bg-zinc-100 dark:bg-zinc-900/80 p-1 rounded-xl mb-4">
           <button
             type="button"
             onClick={() => { setMode('login'); setEmailAddress(''); }}

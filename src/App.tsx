@@ -109,7 +109,7 @@ export default function App() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [activeFullImage, setActiveFullImage] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-  const [menuSubView, setMenuSubView] = useState<'main' | 'form'>('main');
+  const [menuSubView, setMenuSubView] = useState<'main' | 'thumbnail-form' | 'logo-form'>('main');
 
   // Custom Thumbnail/Asset Form States
   const [customTitle, setCustomTitle] = useState<string>('');
@@ -118,6 +118,28 @@ export default function App() {
   const [customCategory, setCustomCategory] = useState<Product['category']>('Web Templates');
   const [customPrice, setCustomPrice] = useState<number>(0);
   const [customDownloadUrl, setCustomDownloadUrl] = useState<string>('');
+
+  // Custom Logo Form States
+  const [logoTitle, setLogoTitle] = useState<string>('');
+  const [logoShortDesc, setLogoShortDesc] = useState<string>('');
+  const [logoPreviewImage, setLogoPreviewImage] = useState<string>('');
+  const [logoCategory, setLogoCategory] = useState<Product['category']>('Graphics');
+  const [logoPrice, setLogoPrice] = useState<number>(0);
+  const [logoDownloadUrl, setLogoDownloadUrl] = useState<string>('');
+
+  // Upload countdown timer metadata
+  interface UploadingAsset {
+    title: string;
+    type: 'thumbnail' | 'logo';
+    secondsLeft: number;
+    totalSeconds: number;
+    previewImage: string;
+    shortDescription: string;
+    category: Product['category'];
+    price: number;
+    downloadUrl: string;
+  }
+  const [uploadingAsset, setUploadingAsset] = useState<UploadingAsset | null>(null);
 
   // Search & Filter state variables
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -229,6 +251,67 @@ export default function App() {
     }
   }, [isMenuOpen]);
 
+  // Handle simulated upload timer for custom assets
+  useEffect(() => {
+    if (!uploadingAsset) return;
+
+    const timer = setInterval(() => {
+      setUploadingAsset((prev) => {
+        if (!prev) return null;
+        if (prev.secondsLeft <= 1) {
+          clearInterval(timer);
+          
+          // Construct and add the actual product now!
+          const isLogo = prev.type === 'logo';
+          const newProduct: Product = {
+            id: `custom-${Date.now()}`,
+            title: prev.title,
+            shortDescription: prev.shortDescription,
+            description: isLogo 
+              ? `This is a high-performance custom vector logo asset dynamically published on AetherVault platform. Crafted in standard vector formats, this asset features sleek modern geometry, smart anchor grids, and beautiful color balance built specifically for elite technological branding projects.`
+              : `This is a premium custom-compiled design asset dynamically published on AetherVault platform. It contains fully detailed layout templates, customizable vector modules, and direct high-performance source components for seamless sandbox development integration.`,
+            category: prev.category,
+            price: prev.price,
+            rating: 5.0,
+            reviewsCount: 0,
+            tags: [prev.category.toLowerCase(), 'custom', 'sandbox', isLogo ? 'logo' : 'thumbnail'],
+            previewImage: prev.previewImage || (isLogo 
+              ? 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1200' 
+              : 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&q=80&w=1200'),
+            downloadUrl: prev.downloadUrl,
+            provider: 'Google Drive',
+            dateCreated: 'May 2026',
+            features: isLogo ? [
+              'Scale-independent SVG and Adobe Illustrator files',
+              'Multiple vector lockups and monochrome presets',
+              'Fully layered grid systems for developer scaling',
+              'Lifetime developer integration license included'
+            ] : [
+              'Premium PNG/Image source thumbnail files included',
+              'Lifetime unlimited developer integration licence',
+              'Fully-tested high-performance component architecture',
+              'Direct cloud mirror secure sandbox package files'
+            ],
+            fileSize: isLogo ? '2.8 MB' : '15.4 MB',
+            fileFormat: isLogo ? 'SVG / AI Vector' : 'ZIP Archive',
+            version: 'v1.0.0',
+            reviews: []
+          };
+
+          setProducts((prevProducts) => [newProduct, ...prevProducts]);
+          triggerToast(`Successfully compiled and published "${newProduct.title}" to catalog! 🚀`);
+          return null;
+        }
+        return {
+          ...prev,
+          secondsLeft: prev.secondsLeft - 1
+        };
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [uploadingAsset]);
+
   // Handle custom thumbnail asset submission
   const handleCustomAssetSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -237,34 +320,19 @@ export default function App() {
       return;
     }
 
-    const newProduct: Product = {
-      id: `custom-${Date.now()}`,
+    // Trigger upload progress timer
+    setUploadingAsset({
       title: customTitle,
+      type: 'thumbnail',
+      secondsLeft: 5,
+      totalSeconds: 5,
+      previewImage: customPreviewImage,
       shortDescription: customShortDesc,
-      description: `This is a premium custom-compiled design asset dynamically published on AetherVault platform. It contains fully detailed layout templates, customizable vector modules, and direct high-performance source components for seamless sandbox development integration.`,
       category: customCategory,
       price: customPrice,
-      rating: 5.0,
-      reviewsCount: 0,
-      tags: [customCategory.toLowerCase(), 'custom', 'sandbox'],
-      previewImage: customPreviewImage,
-      downloadUrl: customDownloadUrl,
-      provider: 'Google Drive',
-      dateCreated: 'May 2026',
-      features: [
-        'Premium PNG/Image source thumbnail files included',
-        'Lifetime unlimited developer integration licence',
-        'Fully-tested high-performance component architecture',
-        'Direct cloud mirror secure sandbox package files'
-      ],
-      fileSize: '15.4 MB',
-      fileFormat: 'ZIP Archive',
-      version: 'v1.0.0',
-      reviews: []
-    };
+      downloadUrl: customDownloadUrl
+    });
 
-    setProducts(prevProducts => [newProduct, ...prevProducts]);
-    
     // Clear form
     setCustomTitle('');
     setCustomShortDesc('');
@@ -273,9 +341,41 @@ export default function App() {
     setCustomPrice(0);
     setCustomDownloadUrl('');
     
-    // Close Drawer Show Toast
+    // Close Drawer
     setIsMenuOpen(false);
-    triggerToast(`Successfully published "${newProduct.title}" to catalog!`);
+  };
+
+  // Handle custom logo asset submission
+  const handleCustomLogoSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!logoTitle || !logoPreviewImage || !logoShortDesc || !logoDownloadUrl) {
+      alert("Please provide all required fields!");
+      return;
+    }
+
+    // Trigger upload progress timer
+    setUploadingAsset({
+      title: logoTitle,
+      type: 'logo',
+      secondsLeft: 5,
+      totalSeconds: 5,
+      previewImage: logoPreviewImage,
+      shortDescription: logoShortDesc,
+      category: logoCategory,
+      price: logoPrice,
+      downloadUrl: logoDownloadUrl
+    });
+
+    // Clear form
+    setLogoTitle('');
+    setLogoShortDesc('');
+    setLogoPreviewImage('');
+    setLogoCategory('Graphics');
+    setLogoPrice(0);
+    setLogoDownloadUrl('');
+    
+    // Close Drawer
+    setIsMenuOpen(false);
   };
 
   // Trigger quick alerts
@@ -1148,6 +1248,139 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* Upload Progress Timer HUD */}
+      <AnimatePresence>
+        {uploadingAsset && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] bg-zinc-950/85 backdrop-blur-md flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="w-full max-w-sm sm:max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 rounded-3xl shadow-2xl p-6 sm:p-8 overflow-hidden relative"
+            >
+              {/* Corner Ambient Glow */}
+              <div className="absolute -top-12 -right-12 w-32 h-32 bg-indigo-500/20 dark:bg-indigo-500/10 rounded-full blur-2xl animate-pulse" />
+              <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-emerald-500/15 dark:bg-emerald-500/10 rounded-full blur-2xl animate-pulse" />
+
+              <div className="text-center space-y-4 relative z-10">
+                {/* Spinner and Countdown Indicator */}
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto flex items-center justify-center">
+                  <svg className="w-full h-full transform -rotate-90">
+                    <circle
+                      cx="48"
+                      cy="48"
+                      r="38"
+                      className="stroke-zinc-100 dark:stroke-zinc-850"
+                      strokeWidth="5"
+                      fill="transparent"
+                    />
+                    <motion.circle
+                      cx="48"
+                      cy="48"
+                      r="38"
+                      className={`${uploadingAsset.type === 'logo' ? 'stroke-emerald-500 dark:stroke-emerald-400' : 'stroke-indigo-600 dark:stroke-indigo-400'}`}
+                      strokeWidth="5"
+                      fill="transparent"
+                      strokeDasharray={2 * Math.PI * 38}
+                      animate={{
+                        strokeDashoffset: (2 * Math.PI * 38) * (1 - uploadingAsset.secondsLeft / uploadingAsset.totalSeconds)
+                      }}
+                      transition={{ duration: 0.95, ease: "linear" }}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="font-mono text-xl sm:text-2xl font-black text-zinc-850 dark:text-white leading-none">
+                      {uploadingAsset.secondsLeft}
+                    </span>
+                    <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 leading-none mt-1">
+                      sec
+                    </span>
+                  </div>
+                </div>
+
+                {/* Subtitle / Asset Description details */}
+                <div className="space-y-1.5">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-mono font-bold uppercase rounded-full tracking-wider ${
+                    uploadingAsset.type === 'logo' 
+                      ? 'bg-emerald-50 dark:bg-emerald-950/45 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-950/55' 
+                      : 'bg-indigo-50 dark:bg-indigo-950/45 text-indigo-600 dark:text-indigo-400 border border-indigo-100/55 dark:border-indigo-950/55'
+                  }`}>
+                    {uploadingAsset.type === 'logo' ? (
+                      <>
+                        <Compass className="w-3.5 h-3.5 text-emerald-500 animate-spin-slow" />
+                        <span>Compiling Brand Logo</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3.5 h-3.5 text-indigo-500 animate-spin-slow" />
+                        <span>Packaging Thumbnail</span>
+                      </>
+                    )}
+                  </span>
+                  <h3 className="text-base font-sans font-black text-zinc-900 dark:text-zinc-50 uppercase tracking-tight truncate px-2">
+                    {uploadingAsset.title}
+                  </h3>
+                  <p className="text-[11px] text-zinc-400 dark:text-zinc-400 font-mono tracking-normal leading-relaxed max-w-xs mx-auto truncate">
+                    {uploadingAsset.shortDescription}
+                  </p>
+                </div>
+
+                {/* Simulated build system progress steps */}
+                <div className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-150 dark:border-zinc-850 p-3.5 rounded-2xl text-left space-y-2 font-mono text-[10px]">
+                  <div className="flex items-center justify-between text-zinc-400 dark:text-zinc-500 border-b border-zinc-100 dark:border-zinc-850 pb-1.5 mb-1.5">
+                    <span>PORTAL BUILD CORE: ACTIVE</span>
+                    <span className="animate-pulse text-emerald-500 font-bold">● ONLINE</span>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-1.5 h-1.5 rounded-full ${uploadingAsset.secondsLeft <= 5 ? 'bg-indigo-500' : 'bg-zinc-300'}`} />
+                      <span className={uploadingAsset.secondsLeft <= 5 ? 'text-zinc-800 dark:text-zinc-200 font-bold' : 'text-zinc-450 dark:text-zinc-500'}>
+                        [01] Ingesting source vectors & URLs...
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`w-1.5 h-1.5 rounded-full ${uploadingAsset.secondsLeft <= 4 ? 'bg-indigo-500' : 'bg-zinc-300'}`} />
+                      <span className={uploadingAsset.secondsLeft <= 4 ? 'text-zinc-800 dark:text-zinc-200 font-bold' : 'text-zinc-455 dark:text-zinc-500'}>
+                        [02] Verifying bounds & dimensions...
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`w-1.5 h-1.5 rounded-full ${uploadingAsset.secondsLeft <= 3 ? 'bg-indigo-500' : 'bg-zinc-300'}`} />
+                      <span className={uploadingAsset.secondsLeft <= 3 ? 'text-zinc-800 dark:text-zinc-200 font-bold' : 'text-zinc-455 dark:text-zinc-500'}>
+                        [03] Syncing secure S3 storage links...
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`w-1.5 h-1.5 rounded-full ${uploadingAsset.secondsLeft <= 2 ? 'bg-indigo-500' : 'bg-zinc-300'}`} />
+                      <span className={uploadingAsset.secondsLeft <= 2 ? 'text-zinc-800 dark:text-zinc-200 font-bold' : 'text-zinc-455 dark:text-zinc-500'}>
+                        [04] Injecting secure metadata headers...
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`w-1.5 h-1.5 rounded-full ${uploadingAsset.secondsLeft <= 1 ? 'bg-emerald-500 animate-ping' : 'bg-zinc-300'}`} />
+                      <span className={uploadingAsset.secondsLeft <= 1 ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-zinc-455 dark:text-zinc-500'}>
+                        [05] Finalizing catalog persistence...
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-[9px] font-mono text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-none mt-1 select-none">
+                  DO NOT CLOSE TAB • SANDBOX INDEX SYNC LIVE
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* 5. Product Detail Modal panel */}
       <AnimatePresence>
         {selectedProduct && (
@@ -1224,10 +1457,10 @@ export default function App() {
               >
                 {/* Header */}
                 <div className="p-5 border-b border-zinc-100 dark:border-zinc-900 flex items-center justify-between">
-                  {menuSubView === 'form' ? (
+                  {menuSubView !== 'main' ? (
                     <button
                       onClick={() => setMenuSubView('main')}
-                      className="flex items-center gap-2 text-indigo-600 hover:text-indigo-505 dark:text-indigo-400 hover:dark:text-indigo-300 font-sans font-bold text-xs uppercase cursor-pointer"
+                      className="flex items-center gap-2 text-indigo-650 hover:text-indigo-500 dark:text-indigo-400 hover:dark:text-indigo-300 font-sans font-bold text-xs uppercase cursor-pointer"
                     >
                       <svg className="w-4 h-4 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -1240,7 +1473,7 @@ export default function App() {
                         <Menu className="w-5 h-5" />
                       </div>
                       <div>
-                        <h3 className="font-sans font-black text-sm uppercase dark:text-zinc-105 tracking-tight">Main Portal Menu</h3>
+                        <h3 className="font-sans font-black text-sm uppercase dark:text-zinc-100 tracking-tight">Main Portal Menu</h3>
                         <p className="text-[10px] font-mono text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-none">Studio Portal</p>
                       </div>
                     </div>
@@ -1256,14 +1489,14 @@ export default function App() {
                 {/* Drawer Body - Scrollable */}
                 <div className="flex-1 overflow-y-auto p-5 space-y-6">
 
-                  {menuSubView === 'main' ? (
+                  {menuSubView === 'main' && (
                     <div className="space-y-6">
                       
                       {/* Customized Thumbnail studio prompt */}
                       <div className="space-y-2">
                         <span className="text-[10px] font-mono font-bold uppercase text-zinc-400 dark:text-zinc-500 tracking-wider">Thumbnail Studio</span>
                         <button
-                          onClick={() => setMenuSubView('form')}
+                          onClick={() => setMenuSubView('thumbnail-form')}
                           className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-indigo-50/75 to-violet-50/50 hover:from-indigo-100/70 hover:to-violet-100/50 dark:from-indigo-950/20 dark:to-violet-950/10 dark:hover:from-indigo-950/35 dark:hover:to-violet-950/25 border border-indigo-100/70 dark:border-indigo-950/40 rounded-2xl cursor-pointer text-left transition-all active:scale-99"
                         >
                           <div className="flex items-center gap-3">
@@ -1276,6 +1509,30 @@ export default function App() {
                             </div>
                           </div>
                           <div className="text-indigo-600 dark:text-indigo-400">
+                            <svg className="w-4 h-4 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                        </button>
+                      </div>
+
+                      {/* Customized Logo brand studio prompt */}
+                      <div className="space-y-2">
+                        <span className="text-[10px] font-mono font-bold uppercase text-zinc-400 dark:text-zinc-500 tracking-wider">Logo Brand Studio</span>
+                        <button
+                          onClick={() => setMenuSubView('logo-form')}
+                          className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-emerald-50/75 to-teal-50/50 hover:from-emerald-100/70 hover:to-teal-100/50 dark:from-emerald-950/20 dark:to-teal-950/10 dark:hover:from-emerald-950/35 dark:hover:to-teal-950/25 border border-emerald-100/70 dark:border-emerald-950/40 rounded-2xl cursor-pointer text-left transition-all active:scale-99"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-500/25">
+                              <Compass className="w-5 h-5 animate-pulse" />
+                            </div>
+                            <div>
+                              <h4 className="text-xs font-sans font-bold text-zinc-850 dark:text-white uppercase tracking-tight">Customized Logo Design</h4>
+                              <p className="text-[10px] text-zinc-500 dark:text-zinc-450 leading-none mt-0.5">Set vector elements, badge concepts & price</p>
+                            </div>
+                          </div>
+                          <div className="text-emerald-600 dark:text-emerald-400">
                             <svg className="w-4 h-4 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                             </svg>
@@ -1372,15 +1629,16 @@ export default function App() {
                       </div>
 
                     </div>
-                  ) : (
-                    /* Add Custom thumbnail form view */
+                  )}
+
+                  {menuSubView === 'thumbnail-form' && (
                     <div className="space-y-6">
                       <div className="border border-indigo-100 dark:border-indigo-950 bg-indigo-50/15 dark:bg-indigo-950/10 p-4.5 rounded-2xl space-y-4">
                         <div className="flex items-center gap-1.5">
                           <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
                           <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-indigo-650 dark:text-indigo-400">Publish Customized Thumbnail</h4>
                         </div>
-                        <p className="text-[11px] text-zinc-550 dark:text-zinc-400 leading-relaxed -mt-1.5">
+                        <p className="text-[11px] text-zinc-555 dark:text-zinc-400 leading-relaxed -mt-1.5">
                           Dynamically publish your custom assets with elegant custom image previews, thumbnail description subtitles, and custom pricing!
                         </p>
 
@@ -1479,6 +1737,117 @@ export default function App() {
                         <Info className="w-4.5 h-4.5 text-indigo-500 shrink-0 mt-0.5" />
                         <p className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-relaxed">
                           Customized thumbnails persist inside active client storage! Easily add name, select custom category circles, specify PNG preview images, and try full shopping checkout flow instantly.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {menuSubView === 'logo-form' && (
+                    <div className="space-y-6">
+                      <div className="border border-emerald-100 dark:border-emerald-950 bg-emerald-50/15 dark:bg-emerald-950/10 p-4.5 rounded-2xl space-y-4">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                          <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Publish Customized Logo</h4>
+                        </div>
+                        <p className="text-[11px] text-zinc-555 dark:text-zinc-400 leading-relaxed -mt-1.5">
+                          Configure and publish your vector brand logo templates. Specify geometric concepts, custom design previews, and price!
+                        </p>
+
+                        <form onSubmit={handleCustomLogoSubmit} className="space-y-3.5">
+                          <div>
+                            <label className="block text-[10px] font-mono text-emerald-600 dark:text-emerald-400 tracking-wide uppercase mb-1">Logo Name / Title</label>
+                            <input
+                              type="text"
+                              required
+                              value={logoTitle}
+                              onChange={(e) => setLogoTitle(e.target.value)}
+                              placeholder="e.g. Starlight Quantum Logo"
+                              className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-805 rounded-xl outline-none focus:border-emerald-500 text-zinc-900 dark:text-white transition-colors"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-mono text-emerald-600 dark:text-emerald-400 tracking-wide uppercase mb-1">Logo Label / Subtitle</label>
+                            <input
+                              type="text"
+                              required
+                              value={logoShortDesc}
+                              onChange={(e) => setLogoShortDesc(e.target.value)}
+                              placeholder="e.g. Minimalist glowing geometric ring emblem"
+                              className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-805 rounded-xl outline-none focus:border-emerald-500 text-zinc-900 dark:text-white transition-colors"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-mono text-emerald-600 dark:text-emerald-400 tracking-wide uppercase mb-1">Logo Image Preview URL</label>
+                            <input
+                              type="url"
+                              required
+                              value={logoPreviewImage}
+                              onChange={(e) => setLogoPreviewImage(e.target.value)}
+                              placeholder="https://images.unsplash.com/photo-..."
+                              className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-805 rounded-xl outline-none focus:border-emerald-500 text-zinc-900 dark:text-white transition-colors"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-[10px] font-mono text-emerald-600 dark:text-emerald-400 tracking-wide uppercase mb-1">Category</label>
+                              <select
+                                value={logoCategory}
+                                onChange={(e) => setLogoCategory(e.target.value as any)}
+                                className="w-full text-xs p-2 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-805 rounded-xl outline-none focus:border-emerald-500 text-zinc-900 dark:text-white transition-colors"
+                              >
+                                <option value="Graphics">Graphics</option>
+                                <option value="UI Kits">UI Kits</option>
+                                <option value="Web Templates">Web Templates</option>
+                                <option value="SaaS Tools">SaaS Tools</option>
+                                <option value="AI Prompts">AI Prompts</option>
+                                <option value="Scripts">Scripts</option>
+                                <option value="Plugins">Plugins</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-mono text-emerald-600 dark:text-emerald-400 tracking-wide uppercase mb-1">Price ($USD)</label>
+                              <input
+                                type="number"
+                                min="0"
+                                max="500"
+                                required
+                                value={logoPrice}
+                                onChange={(e) => setLogoPrice(Number(e.target.value))}
+                                className="w-full text-xs p-2 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-805 rounded-xl outline-none focus:border-emerald-500 text-zinc-900 dark:text-white transition-colors"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-mono text-emerald-600 dark:text-emerald-400 tracking-wide uppercase mb-1">Vector Source Link / Download URL</label>
+                            <input
+                              type="url"
+                              required
+                              value={logoDownloadUrl}
+                              onChange={(e) => setLogoDownloadUrl(e.target.value)}
+                              placeholder="https://drive.google.com/..."
+                              className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-805 rounded-xl outline-none focus:border-emerald-500 text-zinc-900 dark:text-white transition-colors"
+                            />
+                          </div>
+
+                          <button
+                            type="submit"
+                            className="w-full mt-2 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-sans font-bold text-xs rounded-xl active:scale-99 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+                          >
+                            Publish Customized Logo 🚀
+                          </button>
+                        </form>
+                      </div>
+
+                      {/* Sandbox helper instructions */}
+                      <div className="flex gap-2.5 p-3.5 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-150 dark:border-zinc-850 rounded-2xl">
+                        <Info className="w-4.5 h-4.5 text-emerald-500 shrink-0 mt-0.5" />
+                        <p className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                          Customized Logos persist in active local storage sandbox! Seamlessly download vector structures inside the Checkout Simulator.
                         </p>
                       </div>
                     </div>
