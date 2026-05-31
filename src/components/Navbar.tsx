@@ -1,3 +1,4 @@
+import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ShoppingBag, 
@@ -10,7 +11,11 @@ import {
   Cpu, 
   Sparkles, 
   Compass, 
-  LogOut 
+  LogOut,
+  Layout,
+  Layers,
+  Code,
+  Image
 } from 'lucide-react';
 import { UserProfile, CartItem } from '../types';
 
@@ -40,6 +45,17 @@ const CATEGORIES = [
   'SaaS Tools',
   'AI Prompts'
 ];
+
+const CATEGORY_ICONS: Record<string, React.ReactNode> = {
+  'All': <Compass className="w-3.5 h-3.5" />,
+  'Web Templates': <Layout className="w-3.5 h-3.5" />,
+  'UI Kits': <Layers className="w-3.5 h-3.5" />,
+  'Scripts': <Code className="w-3.5 h-3.5" />,
+  'Plugins': <Cpu className="w-3.5 h-3.5" />,
+  'Graphics': <Image className="w-3.5 h-3.5" />,
+  'SaaS Tools': <Terminal className="w-3.5 h-3.5" />,
+  'AI Prompts': <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+};
 
 export default function Navbar({
   theme,
@@ -189,25 +205,36 @@ export default function Navbar({
         </div>
 
         {/* Categories Bar */}
-        <div className="border-t border-zinc-100 dark:border-white/10 py-2 sm:py-3.5 overflow-x-auto flex items-center scrollbar-none">
-          <div className="flex gap-1.5 sm:gap-2">
-            {CATEGORIES.map((cat) => {
-              const isActive = activeCategory === cat;
-              return (
-                <button
-                  id={`cat-btn-${cat.toLowerCase().replace(/\s+/g, '-')}`}
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`px-4 py-1.5 rounded-full text-xs font-sans font-medium transition-all duration-200 whitespace-nowrap cursor-pointer ${
-                    isActive
-                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
-                      : 'bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-slate-400 hover:bg-zinc-200/70 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white'
-                  }`}
-                >
-                  {cat}
-                </button>
-              );
-            })}
+        <div id="categories-scroll-wrapper" className="relative border-t border-zinc-100 dark:border-white/10 mt-1 sm:mt-2">
+          {/* Subtle horizontal fade mask to show swiping action */}
+          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white dark:from-[#0a0a0a] to-transparent pointer-events-none z-10 opacity-30 sm:opacity-50" />
+          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-[#0a0a0a] to-transparent pointer-events-none z-10 opacity-30 sm:opacity-50" />
+
+          <div className="py-2.5 sm:py-3.5 overflow-x-auto flex items-center scrollbar-none scroll-smooth touch-pan-x">
+            <div className="flex gap-1.5 sm:gap-2.5">
+              {CATEGORIES.map((cat) => {
+                const isActive = activeCategory === cat;
+                return (
+                  <motion.button
+                    id={`cat-btn-${cat.toLowerCase().replace(/\s+/g, '-')}`}
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    whileHover={{ y: -1, scale: 1.02 }}
+                    whileTap={{ scale: 0.96 }}
+                    className={`flex items-center gap-2 px-3.5 sm:px-4.5 py-1.5 sm:py-2 rounded-full text-xs font-sans font-semibold transition-all duration-300 whitespace-nowrap cursor-pointer select-none ${
+                      isActive
+                        ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/30 scale-100 border border-transparent'
+                        : 'bg-zinc-100 dark:bg-white/5 text-zinc-600 dark:text-slate-400 hover:bg-zinc-200/70 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white border border-transparent dark:border-white/5'
+                    }`}
+                  >
+                    <span className="shrink-0">
+                      {CATEGORY_ICONS[cat] || <Compass className="w-3.5 h-3.5" />}
+                    </span>
+                    <span>{cat}</span>
+                  </motion.button>
+                );
+              })}
+            </div>
           </div>
         </div>
 

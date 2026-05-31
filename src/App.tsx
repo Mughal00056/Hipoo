@@ -105,6 +105,70 @@ export default function App() {
   // Welcome Toast banner setting
   const [showToast, setShowToast] = useState<string>('');
 
+  // Splash Screen Active State
+  const [isSplashActive, setIsSplashActive] = useState<boolean>(true);
+  const [splashProgress, setSplashProgress] = useState<number>(0);
+  const [splashLogIndex, setSplashLogIndex] = useState<number>(0);
+
+  // Top Slider Active Announcement State
+  const [announcementIndex, setAnnouncementIndex] = useState<number>(0);
+
+  // Spotlight Product Slider State
+  const [spotlightIndex, setSpotlightIndex] = useState<number>(0);
+
+  const SPLASH_LOGS = [
+    "Initializing secure digital asset sandbox...",
+    "Connecting to AetherVault secure mirrors...",
+    "Decrypting file ingestion keys...",
+    "Validating secure download protocol bounds...",
+    "Setting up local sandbox storage variables...",
+    "Active sync confirmed. Decrypted portal live!"
+  ];
+
+  const ANNOUNCEMENTS = [
+    "🔥 EXCLUSIVE PROMO: Get 25% OFF on all React templates & UI kits using code VAULT25!",
+    "⚡ SECURE SECRETS: Direct Dropbox & Drive browser unlocks, no registered logins requested!",
+    "🛡️ SANDBOX GUARANTEE: Lightweight, verified, production-ready source scripts!",
+    "💎 ACTIVE SPOTLIGHTS: Upgraded catalog features direct source updates every week!"
+  ];
+
+  // Splash and Top Bar Announcement timer configurations
+  useEffect(() => {
+    let progressInterval: NodeJS.Timeout;
+    let logInterval: NodeJS.Timeout;
+
+    progressInterval = setInterval(() => {
+      setSplashProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(progressInterval);
+          setTimeout(() => setIsSplashActive(false), 550);
+          return 100;
+        }
+        const step = Math.floor(Math.random() * 9) + 7;
+        return Math.min(prev + step, 100);
+      });
+    }, 110);
+
+    logInterval = setInterval(() => {
+      setSplashLogIndex((prev) => (prev < SPLASH_LOGS.length - 1 ? prev + 1 : prev));
+    }, 320);
+
+    const announcementTimer = setInterval(() => {
+      setAnnouncementIndex((prev) => (prev + 1) % ANNOUNCEMENTS.length);
+    }, 4500);
+
+    const spotlightTimer = setInterval(() => {
+      setSpotlightIndex((prev) => (prev + 1) % 3); // rotate among top 3 assets
+    }, 6000);
+
+    return () => {
+      clearInterval(progressInterval);
+      clearInterval(logInterval);
+      clearInterval(announcementTimer);
+      clearInterval(spotlightTimer);
+    };
+  }, []);
+
   // Settle theme transformations on root document
   useEffect(() => {
     const root = window.document.documentElement;
@@ -388,9 +452,144 @@ export default function App() {
 
   // Featured and trending asset definitions
   const trendingAssets = products.filter(p => p.rating >= 4.8).slice(0, 3);
+  const spotlightProducts = products.filter(p => p.rating >= 4.7).slice(0, 3);
 
   return (
     <div className={`min-h-screen transition-colors duration-200 bg-zinc-50 text-zinc-900 dark:bg-[#050505] dark:text-slate-200 ${theme === 'dark' ? 'dark' : ''}`}>
+      
+      {/* 0. Luxury Sci-Fi Splash Screen loading overlay */}
+      <AnimatePresence>
+        {isSplashActive && (
+          <motion.div
+            id="aether-splash-screen"
+            initial={{ opacity: 1 }}
+            exit={{ 
+              opacity: 0,
+              scale: 1.05,
+              filter: "blur(8px)",
+              transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] }
+            }}
+            className="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-[#050505] text-white overflow-hidden p-6 select-none"
+          >
+            {/* Background cyber mesh ambient lights */}
+            <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:30px_30px]" />
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-indigo-600/10 blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-violet-600/10 blur-[120px] pointer-events-none" />
+
+            <div className="max-w-md w-full text-center space-y-8 relative">
+              {/* Spinning Logo Container */}
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5, type: "spring" }}
+                className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-fuchsia-600 p-[1.5px] shadow-2xl shadow-indigo-500/30 flex items-center justify-center relative group"
+              >
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-fuchsia-600 blur-md opacity-50" />
+                <div className="w-full h-full rounded-2xl bg-zinc-950 flex items-center justify-center text-white relative z-10">
+                  <Sparkles className="w-8 h-8 text-indigo-400 stroke-[1.8] animate-pulse" />
+                </div>
+              </motion.div>
+
+              {/* Title Header paired with tracking effects */}
+              <div className="space-y-2 font-display">
+                <motion.h1
+                  initial={{ y: 15, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.15, duration: 0.4 }}
+                  className="font-black text-3xl sm:text-4xl tracking-tighter uppercase"
+                >
+                  Aether<span className="text-indigo-500 font-light">Vault</span>
+                </motion.h1>
+                <motion.p
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.25, duration: 0.4 }}
+                  className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase"
+                >
+                  Premium Digital Artifacts Marketplace
+                </motion.p>
+              </div>
+
+              {/* Progress Bar Loader & Labels */}
+              <div className="space-y-4 pt-4">
+                <div className="relative h-[2px] w-full bg-white/5 rounded-full overflow-hidden">
+                  <motion.div
+                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500"
+                    style={{ width: `${splashProgress}%` }}
+                    transition={{ ease: "easeOut" }}
+                  />
+                </div>
+                
+                {/* Micro numbers and interactive status logs */}
+                <div className="flex items-center justify-between font-mono text-[9.5px]">
+                  <div className="w-4/5 text-left text-zinc-400 truncate flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-ping shrink-0" />
+                    <span>{SPLASH_LOGS[splashLogIndex]}</span>
+                  </div>
+                  <span className="text-zinc-300 font-bold ml-2 shrink-0">{splashProgress}%</span>
+                </div>
+              </div>
+
+              {/* Secure sandbox protocol banner */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.4 }}
+                transition={{ delay: 0.6 }}
+                className="text-[8px] font-mono tracking-widest text-zinc-600 uppercase pt-10"
+              >
+                Encrypted Connection SSL Secured • Build v2.4.1
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Top Announcement Sliding Promo Bar */}
+      <div id="top-promo-slider" className="w-full bg-gradient-to-r from-indigo-900 via-slate-900 to-indigo-950 dark:from-zinc-950 dark:via-indigo-950/40 dark:to-zinc-950 border-b border-indigo-500/10 dark:border-white/5 py-2.5 sm:py-3 relative overflow-hidden text-white px-4">
+        {/* Animated glowing border ray */}
+        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-indigo-400 to-transparent animate-pulse" />
+        
+        <div className="max-w-7xl mx-auto flex items-center justify-between text-xs font-mono relative">
+          
+          {/* Previous Arrow Control */}
+          <button 
+            onClick={() => setAnnouncementIndex((prev) => (prev === 0 ? ANNOUNCEMENTS.length - 1 : prev - 1))}
+            className="p-1 hover:text-indigo-400 dark:hover:text-amber-400 transition-colors shrink-0 text-slate-400 cursor-pointer text-left focus:outline-none focus:ring-1 focus:ring-indigo-500 rounded"
+            title="Previous Announcement Item"
+            aria-label="Previous Promo Notification"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+
+          {/* Central Animated Text Content Area */}
+          <div className="flex-1 overflow-hidden min-w-0 mx-4 h-5 flex items-center justify-center relative">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={announcementIndex}
+                initial={{ opacity: 0, y: 12, filter: "blur(4px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: -12, filter: "blur(4px)" }}
+                transition={{ duration: 0.35, ease: "easeInOut" }}
+                className="text-center text-[10px] sm:text-xs font-semibold text-slate-100 tracking-wide flex items-center justify-center gap-2 select-none"
+              >
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                <span className="truncate">{ANNOUNCEMENTS[announcementIndex]}</span>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Next Arrow Control */}
+          <button 
+            onClick={() => setAnnouncementIndex((next) => (next + 1) % ANNOUNCEMENTS.length)}
+            className="p-1 hover:text-indigo-400 dark:hover:text-amber-400 transition-colors shrink-0 text-slate-400 cursor-pointer text-left focus:outline-none focus:ring-1 focus:ring-indigo-500 rounded"
+            title="Next Announcement Item"
+            aria-label="Next Promo Notification"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7"/></svg>
+          </button>
+          
+        </div>
+      </div>
       
       {/* Top Welcome Notification Toast */}
       <AnimatePresence>
@@ -399,7 +598,7 @@ export default function App() {
             initial={{ opacity: 0, y: -50, x: '-50%' }}
             animate={{ opacity: 1, y: 16, x: '-50%' }}
             exit={{ opacity: 0, y: -40, x: '-50%' }}
-            className="fixed top-0 left-1 /2 z-50 transform -translate-x-1/2 flex items-center gap-2 px-4.5 py-3 rounded-xl bg-zinc-950 text-white dark:bg-zinc-100 dark:text-zinc-900 text-xs font-sans font-semibold shadow-2xl border border-zinc-800 dark:border-zinc-200"
+            className="fixed top-0 left-1/2 z-50 transform -translate-x-1/2 flex items-center gap-2 px-4.5 py-3 rounded-xl bg-zinc-950 text-white dark:bg-zinc-100 dark:text-zinc-900 text-xs font-sans font-semibold shadow-2xl border border-zinc-800 dark:border-zinc-200"
           >
             <span>{showToast}</span>
           </motion.div>
@@ -489,11 +688,158 @@ export default function App() {
       {/* Primary catalog dashboard layout */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         
+        {/* Spotlight Carousel Banner - Smooth Animated Slider of Top Rated Assets */}
+        {searchQuery === '' && spotlightProducts.length > 0 && (
+          <div id="catalog-spotlight-carousel" className="mb-10 bg-gradient-to-br from-indigo-950/40 via-[#070707] to-zinc-950 border border-indigo-500/10 dark:border-white/10 rounded-3xl p-6 md:p-8 relative overflow-hidden shadow-2xl">
+            {/* Spotlight labels */}
+            <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-indigo-500/10 blur-[90px] pointer-events-none -mr-20 -mt-20" />
+            <div className="absolute -left-10 -bottom-10 w-64 h-64 rounded-full bg-violet-500/5 blur-[80px] pointer-events-none" />
+            
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-indigo-500 animate-ping" />
+                <span className="text-[11px] font-mono tracking-widest text-indigo-400 dark:text-indigo-300 uppercase font-black">Featured Spotlights</span>
+              </div>
+              
+              {/* Sliding dot indicators */}
+              <div className="flex items-center gap-2">
+                {spotlightProducts.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSpotlightIndex(idx)}
+                    className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                      spotlightIndex === idx ? 'w-6 bg-indigo-500' : 'w-2 bg-zinc-700 dark:bg-white/10'
+                    }`}
+                    aria-label={`Slide ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Sliding Container with slide & crossfade effect */}
+            <div className="relative min-h-[290px] sm:min-h-[240px] md:min-h-[220px] flex items-center">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={spotlightIndex}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                  className="w-full grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center"
+                >
+                  {/* Left Column for product image preview */}
+                  <div className="md:col-span-4 relative group shrink-0">
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-indigo-500/20 to-fuchsia-500/20 opacity-0 group-hover:opacity-100 transition-opacity blur-md" />
+                    <img
+                      src={spotlightProducts[spotlightIndex].previewImage}
+                      alt={spotlightProducts[spotlightIndex].title}
+                      className="w-full h-44 sm:h-48 md:h-40 object-cover rounded-2xl border border-white/5 shadow-md relative z-10 select-none pointer-events-none"
+                    />
+                    <div className="absolute top-3 left-3 bg-indigo-600 text-white font-mono text-[9px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider z-20">
+                      {spotlightProducts[spotlightIndex].category}
+                    </div>
+                  </div>
+
+                  {/* Right Column for content summaries */}
+                  <div className="md:col-span-8 flex flex-col justify-between h-full space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-yellow-400 text-xs">
+                        <div className="flex">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className="w-3.5 h-3.5 fill-current" />
+                          ))}
+                        </div>
+                        <span className="text-zinc-500 dark:text-zinc-400 font-mono">({spotlightProducts[spotlightIndex].reviewsCount} Verified)</span>
+                      </div>
+                      
+                      <h3 className="text-xl sm:text-2xl font-display font-black text-zinc-900 dark:text-white leading-tight uppercase tracking-tight">
+                        {spotlightProducts[spotlightIndex].title}
+                      </h3>
+                      
+                      <p className="text-xs sm:text-sm text-zinc-500 dark:text-slate-400 max-w-xl leading-relaxed">
+                        {spotlightProducts[spotlightIndex].shortDescription}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {spotlightProducts[spotlightIndex].tags.slice(0, 3).map((tag) => (
+                        <span key={tag} className="text-[10px] font-mono bg-zinc-100 dark:bg-white/5 border border-zinc-200/50 dark:border-white/5 py-1 px-2.5 rounded-md text-zinc-600 dark:text-slate-400">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Interactive Triggers */}
+                    <div className="flex items-center gap-3.5 pt-2 border-t border-zinc-100 dark:border-white/5">
+                      <span className="text-xl font-display font-black text-indigo-600 dark:text-indigo-400">
+                        {spotlightProducts[spotlightIndex].price === 0 ? '$FREE' : `$${spotlightProducts[spotlightIndex].price}`}
+                      </span>
+                      
+                      <button
+                        onClick={() => setSelectedProduct(spotlightProducts[spotlightIndex])}
+                        className="px-4.5 py-2 bg-zinc-900 border border-white/5 hover:bg-zinc-805 text-zinc-100 text-xs font-semibold rounded-xl active:scale-98 transition-all cursor-pointer font-sans"
+                      >
+                        Inspect Resource
+                      </button>
+
+                      <button
+                        onClick={() => handleBuyNow(spotlightProducts[spotlightIndex])}
+                        className="px-5 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-500 hover:to-violet-500 text-xs font-bold rounded-xl active:scale-98 transition-all cursor-pointer font-sans shadow-md shadow-indigo-500/10"
+                      >
+                        Instant Checkout
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+            
+            {/* Next/Prev buttons overlay */}
+            <div className="absolute right-6 bottom-6 flex items-center gap-2 z-20">
+              <button
+                onClick={() => setSpotlightIndex((prev) => (prev === 0 ? spotlightProducts.length - 1 : prev - 1))}
+                className="w-8 h-8 rounded-full bg-zinc-900 hover:bg-zinc-800 text-slate-400 hover:text-white flex items-center justify-center border border-white/5 transition-all active:scale-90 cursor-pointer"
+                title="Swipe Spotlight Left"
+                aria-label="Previous Slide Item"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7"/></svg>
+              </button>
+              <button
+                onClick={() => setSpotlightIndex((prev) => (prev + 1) % spotlightProducts.length)}
+                className="w-8 h-8 rounded-full bg-zinc-900 hover:bg-zinc-800 text-slate-400 hover:text-white flex items-center justify-center border border-white/5 transition-all active:scale-90 cursor-pointer"
+                title="Swipe Spotlight Right"
+                aria-label="Next Slide Item"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7"/></svg>
+              </button>
+            </div>
+          </div>
+        )}
+        
         {/* Secondary Navigation with active filters and filters toggles */}
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
+        <div className="w-full flex flex-col lg:flex-row gap-8 items-start">
           
+          {/* Mobile Filter Toggle Button */}
+          <div className="w-full lg:hidden mb-1">
+            <button
+              onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
+              className="w-full flex items-center justify-between p-4 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-white/10 rounded-2xl cursor-pointer text-xs font-semibold hover:bg-zinc-50 dark:hover:bg-white/5 active:scale-99 transition-all text-zinc-850 dark:text-zinc-200"
+            >
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="w-4 h-4 text-indigo-500" />
+                <span className="font-mono uppercase tracking-wider text-[11px]">Search Filters</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-zinc-500 dark:text-slate-400 font-sans">
+                <span>{isMobileFiltersOpen ? 'Hide Filters' : 'Show Filters'}</span>
+                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isMobileFiltersOpen ? 'rotate-180' : ''}`} />
+              </div>
+            </button>
+          </div>
+
           {/* Side FILTER SYSTEM desktop panel */}
-          <aside className="w-full lg:w-64 shrink-0 bg-white dark:bg-[#070707] p-5 rounded-2xl border border-zinc-200/80 dark:border-white/10 space-y-6 lg:sticky lg:top-24">
+          <aside className={`shrink-0 bg-white dark:bg-[#070707] p-5 rounded-2xl border border-zinc-200/80 dark:border-white/10 space-y-6 lg:sticky lg:top-24 w-full lg:w-64 transition-all duration-300 ${
+            isMobileFiltersOpen ? 'block' : 'hidden lg:block'
+          }`}>
             
             <div className="flex justify-between items-center pb-4 border-b border-zinc-100 dark:border-white/10 font-sans">
               <div className="flex items-center gap-1.5 text-xs font-mono uppercase font-bold text-zinc-450 dark:text-slate-400">
