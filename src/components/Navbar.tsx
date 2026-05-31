@@ -79,15 +79,14 @@ export default function Navbar({
         <div className="flex items-center justify-between h-16 sm:h-20 gap-4">
           
           <div className="flex items-center gap-2">
-            {/* Left Menu - Customized Thumbnail Text Trigger */}
+            {/* Left Menu - Standard 3-Lines hamburger Menu Trigger */}
             <button
               id="nav-side-menu-trigger"
               onClick={onMenuClick}
-              className="px-3.5 py-2 font-sans font-bold text-xs uppercase text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-xl transition-all cursor-pointer mr-2 flex items-center gap-1.5 border border-indigo-100 dark:border-indigo-950 bg-indigo-50/20 dark:bg-indigo-950/20"
+              className="p-2 text-zinc-600 hover:text-indigo-600 dark:text-zinc-400 dark:hover:text-indigo-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-xl transition-all cursor-pointer mr-1 relative flex items-center justify-center border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#0a0a0a]"
               title="Open Customized Thumbnail Editor"
             >
-              <Sparkles className="w-3.5 h-3.5 animate-pulse text-indigo-500" />
-              <span>Customized Thumbnail</span>
+              <Menu className="w-5.5 h-5.5 stroke-[2]" />
             </button>
 
             {/* Logo Brand */}
@@ -195,10 +194,11 @@ export default function Navbar({
               <button
                 id="btn-login-trigger"
                 onClick={() => setIsAuthModalOpen(true)}
-                className="flex items-center gap-1.5 font-sans font-semibold text-xs sm:text-sm text-zinc-100 bg-zinc-900 dark:bg-indigo-600 dark:text-white py-2 px-4 sm:px-5 rounded-full hover:bg-zinc-850 dark:hover:bg-indigo-700 active:scale-98 transition-all cursor-pointer shadow-lg shadow-indigo-500/20"
+                className="flex items-center gap-1.5 font-sans font-bold text-xs sm:text-sm text-zinc-100 bg-zinc-900 dark:bg-indigo-600 dark:text-white py-2 px-3 sm:px-4.5 rounded-full hover:bg-zinc-850 dark:hover:bg-indigo-700 active:scale-98 transition-all cursor-pointer shadow-md"
               >
                 <User className="w-4 h-4 stroke-[2.2]" />
-                <span>Sign In / Sign Up</span>
+                <span className="hidden sm:inline">Sign In / Sign Up</span>
+                <span className="sm:hidden">Login</span>
               </button>
             )}
 

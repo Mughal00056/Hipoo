@@ -955,39 +955,6 @@ export default function App() {
               </div>
             </div>
             
-            {/* Catalog Grid Bar Header */}
-            <div className="flex flex-col sm:flex-row items-baseline sm:items-center justify-between gap-3 bg-white dark:bg-white/[0.02] p-4 border border-zinc-200/50 dark:border-white/10 rounded-2xl">
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-sm font-sans font-bold text-zinc-850 dark:text-white uppercase">
-                    {sortedProducts.length} Asset{sortedProducts.length !== 1 ? 's' : ''} Cataloged
-                  </span>
-                  {activeCategory !== 'All' && (
-                    <span className="text-xs font-mono bg-zinc-100 dark:bg-white/5 px-2 py-0.5 rounded text-indigo-500 dark:text-indigo-400 border border-transparent dark:border-white/10 font-bold">
-                      in {activeCategory}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Sorting triggers */}
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-zinc-400 font-mono text-[10px] uppercase shrink-0 dark:text-slate-400">Sort By:</span>
-                <select
-                  id="sort-products-picker"
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="bg-zinc-500/5 border border-zinc-200 dark:border-white/10 rounded-lg px-2.5 py-1.5 text-xs font-medium font-sans outline-none focus:border-indigo-500 select-none text-zinc-850 dark:text-slate-205 cursor-pointer animate-none bg-transparent"
-                >
-                  <option className="bg-white dark:bg-[#0a0a0a]" value="featured">🔥 High Rating</option>
-                  <option className="bg-white dark:bg-[#0a0a0a]" value="newest">📅 Newest Arrivals</option>
-                  <option className="bg-white dark:bg-[#0a0a0a]" value="price_asc">📈 Price: Low to High</option>
-                  <option className="bg-white dark:bg-[#0a0a0a]" value="price_desc">📉 Price: High to Low</option>
-                  <option className="bg-white dark:bg-[#0a0a0a]" value="rating">⭐ Average Stars Scored</option>
-                </select>
-              </div>
-            </div>
-
             {/* Sorted list grids */}
             {sortedProducts.length === 0 ? (
               <div className="py-24 text-center space-y-4 bg-white dark:bg-zinc-950 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-900">
