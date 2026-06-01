@@ -47,11 +47,12 @@ service cloud.firestore {
     // 3. UserProfiles collection guards (PII Isolations & Role-Modification Prevention)
     match /users/{userId} {
       // Users can read their own profiles, admins can look up anyone's profile for management
-      allow read: if isOwner(userId) || isAdmin();
+      allow read: if (isSignedIn() && (resource == null || resource.data.email == request.auth.token.email)) || isAdmin();
       
       // Initial registration of profiles
-      allow create: if isOwner(userId)
+      allow create: if isSignedIn()
         && isValidId(userId)
+        && request.resource.data.email == request.auth.token.email
         && request.resource.data.email is string
         && request.resource.data.email.size() <= 100
         && request.resource.data.name is string
@@ -60,7 +61,7 @@ service cloud.firestore {
         
       // Modifications - regular users cannot modify their own isAdmin field, only administrative managers can
       allow update: if (
-        (isOwner(userId) && (!request.resource.data.keys().hasAll(['isAdmin']) || request.resource.data.isAdmin == resource.data.isAdmin)) ||
+        (isSignedIn() && resource.data.email == request.auth.token.email && (!request.resource.data.keys().hasAll(['isAdmin']) || request.resource.data.isAdmin == resource.data.isAdmin)) ||
         isAdmin()
       )
         && isValidId(userId)
@@ -73,9 +74,9 @@ service cloud.firestore {
 
       // Unlocked purchase records subcollection (The Master Gate pattern)
       match /purchases/{purchaseId} {
-        allow read: if isOwner(userId) || isAdmin();
+        allow read: if (isSignedIn() && get(/databases/$(database)/documents/users/$(userId)).data.email == request.auth.token.email) || isAdmin();
         
-        allow create: if isOwner(userId)
+        allow create: if (isSignedIn() && get(/databases/$(database)/documents/users/$(userId)).data.email == request.auth.token.email)
           && isValidId(purchaseId)
           && request.resource.data.productId is string
           && request.resource.data.amountPaid is number;
