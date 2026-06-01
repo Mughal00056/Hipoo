@@ -20,12 +20,21 @@ service cloud.firestore {
       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
+    // High Security Admin Validation Gate (supports email-based bootstrapping or explicit DB flag)
+    function isAdmin() {
+      return isSignedIn() && (
+        (request.auth.token.email == 'mrflop786@gmail.com' && request.auth.token.email_verified == true) ||
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
+      );
+    }
+
     // 2. Products collection guards
     match /products/{productId} {
       allow read: if true; // Public catalog reads
       
-      // Allow creation/modification of products only for logged-in operators
-      allow create, update: if isSignedIn() 
+      // Only authorized administrative users can create or modify catalogue
+      allow create, update: if isAdmin() 
         && isValidId(productId)
         && request.resource.data.title is string
         && request.resource.data.title.size() <= 150
@@ -35,22 +44,36 @@ service cloud.firestore {
       allow delete: if false; // Deletion is disabled in the app sandbox
     }
 
-    // 3. UserProfiles collection guards (PII Isolations)
+    // 3. UserProfiles collection guards (PII Isolations & Role-Modification Prevention)
     match /users/{userId} {
-      allow read: if isOwner(userId);
+      // Users can read their own profiles, admins can look up anyone's profile for management
+      allow read: if isOwner(userId) || isAdmin();
       
-      allow create, update: if isOwner(userId)
+      // Initial registration of profiles
+      allow create: if isOwner(userId)
+        && isValidId(userId)
+        && request.resource.data.email is string
+        && request.resource.data.email.size() <= 100
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 100
+        && (!request.resource.data.keys().hasAll(['isAdmin']) || request.resource.data.isAdmin == false);
+        
+      // Modifications - regular users cannot modify their own isAdmin field, only administrative managers can
+      allow update: if (
+        (isOwner(userId) && (!request.resource.data.keys().hasAll(['isAdmin']) || request.resource.data.isAdmin == resource.data.isAdmin)) ||
+        isAdmin()
+      )
         && isValidId(userId)
         && request.resource.data.email is string
         && request.resource.data.email.size() <= 100
         && request.resource.data.name is string
         && request.resource.data.name.size() <= 100;
-        
+         
       allow delete: if false;
 
       // Unlocked purchase records subcollection (The Master Gate pattern)
       match /purchases/{purchaseId} {
-        allow read: if isOwner(userId);
+        allow read: if isOwner(userId) || isAdmin();
         
         allow create: if isOwner(userId)
           && isValidId(purchaseId)
@@ -59,6 +82,12 @@ service cloud.firestore {
           
         allow update, delete: if false; // Purchases are immutable once processed
       }
+    }
+
+    // 4. Global Settings (Administrative payment gateway details)
+    match /settings/{settingId} {
+      allow read: if true; // Public checkout needs to view billing credentials
+      allow write: if isAdmin() && isValidId(settingId);
     }
   }
 }

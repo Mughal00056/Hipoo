@@ -31,6 +31,7 @@
         "email": { "type": "string", "format": "email" },
         "name": { "type": "string" },
         "avatar": { "type": "string" },
+        "isAdmin": { "type": "boolean" },
         "wishlistIds": { "type": "array" }
       },
       "required": ["email", "name", "avatar"]
@@ -50,6 +51,17 @@
         "unlockToken": { "type": "string" }
       },
       "required": ["id", "productId", "productTitle", "purchaseDate", "amountPaid", "downloadUrl", "unlockToken"]
+    },
+    "PaymentDetails": {
+      "title": "PaymentDetails",
+      "description": "Settings containing administrative billing accounts.",
+      "type": "object",
+      "properties": {
+        "easypaisaNumber": { "type": "string" },
+        "jazzcashNumber": { "type": "string" },
+        "cryptoAddress": { "type": "string" }
+      },
+      "required": ["easypaisaNumber", "jazzcashNumber", "cryptoAddress"]
     }
   },
   "firestore": {
@@ -64,6 +76,10 @@
     "/users/{userId}/purchases/{purchaseId}": {
       "schema": "Purchase",
       "description": "Subcollection of unlocked purchase records per user."
+    },
+    "/settings/{settingId}": {
+      "schema": "PaymentDetails",
+      "description": "Administrative marketplace global settings doc."
     }
   }
 }
