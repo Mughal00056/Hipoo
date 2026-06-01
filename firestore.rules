@@ -17,7 +17,7 @@ service cloud.firestore {
     }
 
     function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_-]+$');
     }
 
     // High Security Admin Validation Gate (supports email-based bootstrapping or explicit DB flag)
@@ -47,36 +47,41 @@ service cloud.firestore {
     // 3. UserProfiles collection guards (PII Isolations & Role-Modification Prevention)
     match /users/{userId} {
       // Users can read their own profiles, admins can look up anyone's profile for management
-      allow read: if (isSignedIn() && (resource == null || resource.data.email == request.auth.token.email)) || isAdmin();
+      allow read: if (isSignedIn() && (resource == null || resource.data.get('email', '') == request.auth.token.email)) || isAdmin();
       
       // Initial registration of profiles
-      allow create: if isSignedIn()
-        && isValidId(userId)
-        && request.resource.data.email == request.auth.token.email
-        && request.resource.data.email is string
-        && request.resource.data.email.size() <= 100
-        && request.resource.data.name is string
-        && request.resource.data.name.size() <= 100
-        && (!request.resource.data.keys().hasAll(['isAdmin']) || request.resource.data.isAdmin == false);
+      allow create: if (
+        (
+          isSignedIn() &&
+          request.resource.data.get('email', '') == request.auth.token.email &&
+          request.resource.data.get('isAdmin', false) == false &&
+          request.resource.data.get('name', '') is string &&
+          request.resource.data.get('name', '').size() <= 100 &&
+          request.resource.data.get('email', '') is string &&
+          request.resource.data.get('email', '').size() <= 100
+        ) || isAdmin()
+      ) && isValidId(userId);
         
       // Modifications - regular users cannot modify their own isAdmin field, only administrative managers can
       allow update: if (
-        (isSignedIn() && resource.data.email == request.auth.token.email && (!request.resource.data.keys().hasAll(['isAdmin']) || request.resource.data.isAdmin == resource.data.isAdmin)) ||
-        isAdmin()
-      )
-        && isValidId(userId)
-        && request.resource.data.email is string
-        && request.resource.data.email.size() <= 100
-        && request.resource.data.name is string
-        && request.resource.data.name.size() <= 100;
+        (
+          isSignedIn() && 
+          resource.data.get('email', '') == request.auth.token.email && 
+          request.resource.data.get('isAdmin', false) == resource.data.get('isAdmin', false) &&
+          request.resource.data.get('name', '') is string &&
+          request.resource.data.get('name', '').size() <= 100 &&
+          request.resource.data.get('email', '') is string &&
+          request.resource.data.get('email', '').size() <= 100
+        ) || isAdmin()
+      ) && isValidId(userId);
          
       allow delete: if false;
 
       // Unlocked purchase records subcollection (The Master Gate pattern)
       match /purchases/{purchaseId} {
-        allow read: if (isSignedIn() && get(/databases/$(database)/documents/users/$(userId)).data.email == request.auth.token.email) || isAdmin();
+        allow read: if (isSignedIn() && get(/databases/$(database)/documents/users/$(userId)).data.get('email', '') == request.auth.token.email) || isAdmin();
         
-        allow create: if (isSignedIn() && get(/databases/$(database)/documents/users/$(userId)).data.email == request.auth.token.email)
+        allow create: if (isSignedIn() && get(/databases/$(database)/documents/users/$(userId)).data.get('email', '') == request.auth.token.email)
           && isValidId(purchaseId)
           && request.resource.data.productId is string
           && request.resource.data.amountPaid is number;
