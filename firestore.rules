@@ -47,13 +47,29 @@ service cloud.firestore {
     // 3. UserProfiles collection guards (PII Isolations & Role-Modification Prevention)
     match /users/{userId} {
       // Users can read their own profiles, admins can look up anyone's profile for management
-      allow read: if (isSignedIn() && (resource == null || resource.data.get('email', '') == request.auth.token.email)) || isAdmin();
+      allow read: if (
+        userId.startsWith('guest_') ||
+        (
+          isSignedIn() && (
+            userId == 'guest_' + request.auth.uid + '_aethervault_io' ||
+            resource == null || 
+            resource.data.get('email', '') == request.auth.token.email
+          )
+        )
+      ) || isAdmin();
       
       // Initial registration of profiles
       allow create: if (
         (
-          isSignedIn() &&
-          request.resource.data.get('email', '') == request.auth.token.email &&
+          userId.startsWith('guest_') && 
+          request.resource.data.get('isAdmin', false) == false &&
+          request.resource.data.get('email', '').startsWith('guest_')
+        ) ||
+        (
+          isSignedIn() && (
+            (userId == 'guest_' + request.auth.uid + '_aethervault_io' && request.resource.data.get('email', '') == 'guest_' + request.auth.uid + '@aethervault.io') ||
+            (request.resource.data.get('email', '') == request.auth.token.email)
+          ) &&
           request.resource.data.get('isAdmin', false) == false &&
           request.resource.data.get('name', '') is string &&
           request.resource.data.get('name', '').size() <= 100 &&
@@ -65,9 +81,15 @@ service cloud.firestore {
       // Modifications - regular users cannot modify their own isAdmin field, only administrative managers can
       allow update: if (
         (
-          isSignedIn() && 
-          resource.data.get('email', '') == request.auth.token.email && 
-          request.resource.data.get('isAdmin', false) == resource.data.get('isAdmin', false) &&
+          userId.startsWith('guest_') && 
+          request.resource.data.get('isAdmin', false) == false &&
+          request.resource.data.get('email', '').startsWith('guest_')
+        ) ||
+        (
+          isSignedIn() && (
+            (userId == 'guest_' + request.auth.uid + '_aethervault_io' && request.resource.data.get('email', '') == 'guest_' + request.auth.uid + '@aethervault.io' && request.resource.data.get('isAdmin', false) == resource.data.get('isAdmin', false)) ||
+            (resource.data.get('email', '') == request.auth.token.email && request.resource.data.get('isAdmin', false) == resource.data.get('isAdmin', false))
+          ) &&
           request.resource.data.get('name', '') is string &&
           request.resource.data.get('name', '').size() <= 100 &&
           request.resource.data.get('email', '') is string &&
@@ -79,9 +101,19 @@ service cloud.firestore {
 
       // Unlocked purchase records subcollection (The Master Gate pattern)
       match /purchases/{purchaseId} {
-        allow read: if (isSignedIn() && get(/databases/$(database)/documents/users/$(userId)).data.get('email', '') == request.auth.token.email) || isAdmin();
+        allow read: if userId.startsWith('guest_') || (
+          isSignedIn() && (
+            userId == 'guest_' + request.auth.uid + '_aethervault_io' ||
+            get(/databases/$(database)/documents/users/$(userId)).data.get('email', '') == request.auth.token.email
+          )
+        ) || isAdmin();
         
-        allow create: if (isSignedIn() && get(/databases/$(database)/documents/users/$(userId)).data.get('email', '') == request.auth.token.email)
+        allow create: if userId.startsWith('guest_') || (
+          isSignedIn() && (
+            userId == 'guest_' + request.auth.uid + '_aethervault_io' ||
+            get(/databases/$(database)/documents/users/$(userId)).data.get('email', '') == request.auth.token.email
+          )
+        )
           && isValidId(purchaseId)
           && request.resource.data.productId is string
           && request.resource.data.amountPaid is number;

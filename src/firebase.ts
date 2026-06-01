@@ -99,6 +99,14 @@ export async function testConnection() {
   }
 }
 
+export async function logoutUser() {
+  try {
+    await signOut(auth);
+  } catch (error) {
+    console.warn("Logout failed:", error);
+  }
+}
+
 // High-level safe synchronization services
 export async function syncUserProfile(email: string, name: string, avatar: string, wishlistIds: string[]) {
   const userId = email.replace(/[^a-zA-Z0-9_\-]/g, '_');

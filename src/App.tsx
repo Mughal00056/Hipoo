@@ -36,8 +36,9 @@ import CartDrawer from './components/CartDrawer';
 import CheckoutModal from './components/CheckoutModal';
 import Dashboard from './components/Dashboard';
 import AuthModal from './components/AuthModal';
-import { AdminPanel } from './admin/AdminPanel';
-import { syncUserProfile, getUserProfile, recordPurchase, getUserPurchases } from './firebase';
+import AdminLogin from './admin/AdminLogin';
+import AdminDashboard from './admin/AdminDashboard';
+import { syncUserProfile, getUserProfile, recordPurchase, getUserPurchases, logoutUser } from './firebase';
 
 const CIRCLE_CATEGORIES = [
   { name: 'All', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=150&h=150' },
@@ -107,10 +108,19 @@ export default function App() {
   });
 
   // UI Visibility States
+  const [currentPath, setCurrentPath] = useState<string>(() => window.location.pathname || '/');
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState<boolean>(false);
+  
+  const handleAdminOpen = (open: boolean) => {
+    setIsAdminPanelOpen(open);
+    if (open) {
+      window.history.pushState({}, '', '/admin/dashboard');
+      setCurrentPath('/admin/dashboard');
+    }
+  };
   const [isDashboardOpen, setIsDashboardOpen] = useState<boolean>(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [activeFullImage, setActiveFullImage] = useState<string | null>(null);
@@ -652,7 +662,12 @@ export default function App() {
   };
 
   // Account Logout Actions
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } catch (e) {
+      console.warn("Firebase logout warning:", e);
+    }
     setUser({
       email: '',
       name: '',
@@ -719,6 +734,77 @@ export default function App() {
   // Featured and trending asset definitions
   const trendingAssets = products.filter(p => p.rating >= 4.8).slice(0, 3);
   const spotlightProducts = products.filter(p => p.rating >= 4.7).slice(0, 3);
+
+  // Synchronize path state on browser back/forward history transitions
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPath(window.location.pathname || '/');
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+  if (currentPath.startsWith('/admin')) {
+    const isUserAdmin = user.isLoggedIn && (user.isAdmin || user.email.toLowerCase() === 'mrflop786@gmail.com');
+    
+    if (currentPath === '/admin/login') {
+      return (
+        <AdminLogin 
+          onAdminAuthenticated={(profile) => {
+            setUser(prev => ({
+              ...prev,
+              email: profile.email,
+              name: profile.name,
+              isLoggedIn: true,
+              isAdmin: true
+            }));
+            triggerToast('🔑 Administrative key authenticated. Workspace decryption successful!');
+          }}
+          onNavigateHome={() => {
+            window.history.pushState({}, '', '/');
+            setCurrentPath('/');
+          }}
+          onNavigateToDashboard={() => {
+            window.history.pushState({}, '', '/admin/dashboard');
+            setCurrentPath('/admin/dashboard');
+          }}
+        />
+      );
+    }
+
+    // Force authorization check for other /admin paths
+    if (!isUserAdmin) {
+      window.history.pushState({}, '', '/admin/login');
+      setTimeout(() => setCurrentPath('/admin/login'), 40);
+      return (
+        <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center font-mono text-zinc-400">
+          <p className="animate-pulse text-xs uppercase tracking-widest text-indigo-400">Auditing active administrative credentials...</p>
+        </div>
+      );
+    }
+
+    return (
+      <AdminDashboard 
+        currentPath={currentPath}
+        onNavigate={(path) => {
+          window.history.pushState({}, '', path);
+          setCurrentPath(path);
+        }}
+        onLogoutAdmin={() => {
+          handleLogout();
+          window.history.pushState({}, '', '/admin/login');
+          setCurrentPath('/admin/login');
+        }}
+        productsRef={products}
+        onProductsUpdated={(pList) => {
+          setProducts(pList);
+          localStorage.setItem('aether-products', JSON.stringify(pList));
+        }}
+      />
+    );
+  }
 
   return (
     <div className={`min-h-screen transition-colors duration-200 bg-zinc-50 text-zinc-900 dark:bg-[#050505] dark:text-slate-200 ${theme === 'dark' ? 'dark' : ''}`}>
@@ -885,7 +971,7 @@ export default function App() {
         setActiveCategory={setActiveCategory}
         user={user}
         setIsAuthModalOpen={setIsAuthModalOpen}
-        setIsAdminPanelOpen={setIsAdminPanelOpen}
+        setIsAdminPanelOpen={handleAdminOpen}
         setIsDashboardOpen={setIsDashboardOpen}
         onLogout={handleLogout}
         onBrandClick={() => {
@@ -1318,13 +1404,6 @@ export default function App() {
             onLoginSuccess={handleLoginSuccess}
           />
         )}
-        {isAdminPanelOpen && (
-          <AdminPanel
-            isOpen={isAdminPanelOpen}
-            onClose={() => setIsAdminPanelOpen(false)}
-            onProductsUpdated={setProducts}
-          />
-        )}
       </AnimatePresence>
 
       {/* 4. Customer User Dashboard Portal */}
@@ -1706,17 +1785,17 @@ export default function App() {
                         ) : (
                           <div className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-150 dark:border-zinc-850 p-4 rounded-2xl flex flex-col text-center space-y-3.5">
                             <p className="text-[10px] text-zinc-550 dark:text-zinc-400 leading-relaxed">
-                              Sign in with your credentials to sync digital downloads, unlock private cloud-keys, and save items in your personalized dashboard directory.
+                              Create a custom guest profile to manage active downloads, maintain details, and keep items in your localized dashboard directory.
                             </p>
                             <button
                               onClick={() => {
                                 setIsMenuOpen(false);
                                 setIsAuthModalOpen(true);
                               }}
-                              className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-850 dark:bg-indigo-655 dark:hover:bg-indigo-700 text-white font-sans font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5"
+                              className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-850 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white font-sans font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5"
                             >
                               <User className="w-4 h-4 stroke-[2.3]" />
-                              <span>Sign In / Create Account</span>
+                              <span>Create Guest Profile</span>
                             </button>
                           </div>
                         )}
