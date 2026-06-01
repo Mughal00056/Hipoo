@@ -47,6 +47,11 @@ export default function CheckoutModal({
   const [errorText, setErrorText] = useState<string>('');
   const [copiedId, setCopiedId] = useState<string>('');
   const [unlockedKeys, setUnlockedKeys] = useState<{ productId: string; token: string }[]>([]);
+  const [paymentDetails, setPaymentDetails] = useState<{ easypaisaNumber: string; jazzcashNumber: string; cryptoAddress: string }>({ easypaisaNumber: '', jazzcashNumber: '', cryptoAddress: '' });
+
+  React.useEffect(() => {
+    import('../firebase').then(f => f.getPaymentDetails()).then(setPaymentDetails);
+  }, []);
 
   if (!isOpen) return null;
 
@@ -140,15 +145,13 @@ export default function CheckoutModal({
               {step === 'checkout' ? 'Aether Encrypted Gateway' : 'Order Assets Certified'}
             </h3>
           </div>
-          {step === 'checkout' && (
-            <button
-              id="checkout-close-top-btn"
-              onClick={onClose}
-              className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-100 p-1 rounded-lg transition-colors cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
+          <button
+            id="checkout-close-top-btn"
+            onClick={onClose}
+            className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-100 p-1 rounded-lg transition-colors cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Content switch */}
@@ -168,7 +171,7 @@ export default function CheckoutModal({
               </div>
               <div className="pt-2 border-t border-zinc-200 dark:border-zinc-850 mt-2 flex justify-between items-center text-sm font-bold text-indigo-600 dark:text-indigo-400">
                 <span>Secure Total Due:</span>
-                <span className="font-mono">${actualAmountDue}</span>
+                <span className="font-mono">{paymentMethod === 'card' ? `$${actualAmountDue}` : `Rs. ${actualAmountDue * 300}`}</span>
               </div>
             </div>
 
@@ -179,22 +182,10 @@ export default function CheckoutModal({
                 <label className="block text-[10px] font-mono text-zinc-405 dark:text-zinc-400 uppercase tracking-wide mb-1">Payment Method</label>
                 <select 
                   value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value as any)}
-                  className="w-full text-xs p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-805 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
-                >
-                  <option value="card">Credit/Debit Card (USD)</option>
-                  <option value="easypaisa">Easypaisa (PKR)</option>
-                  <option value="jazzcash">JazzCash (PKR)</option>
-                  <option value="crypto">Cryptocurrency</option>
-                </select>
-              </div>
-
-              {/* Payment method selector */}
-              <div>
-                <label className="block text-[10px] font-mono text-zinc-405 dark:text-zinc-400 uppercase tracking-wide mb-1">Payment Method</label>
-                <select 
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value as any)}
+                  onChange={(e) => {
+                    setPaymentMethod(e.target.value as any);
+                    setCardNumber(''); // Clear numeric inputs
+                  }}
                   className="w-full text-xs p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-805 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
                 >
                   <option value="card">Credit/Debit Card (USD)</option>
@@ -277,9 +268,19 @@ export default function CheckoutModal({
                     </div>
                   </div>
                 </>
+              ) : actualAmountDue > 0 && ['easypaisa', 'jazzcash', 'crypto'].includes(paymentMethod) ? (
+                <div className="p-4 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-center text-xs space-y-2">
+                    <p className="font-semibold">{paymentMethod.charAt(0).toUpperCase() + paymentMethod.slice(1)} Details</p>
+                    <p className="font-mono text-indigo-600 dark:text-indigo-400">
+                        {paymentMethod === 'easypaisa' ? paymentDetails.easypaisaNumber : 
+                         paymentMethod === 'jazzcash' ? paymentDetails.jazzcashNumber : 
+                         paymentDetails.cryptoAddress}
+                    </p>
+                    <p>Transfer amount and submit order.</p>
+                </div>
               ) : actualAmountDue > 0 ? (
                 <div className="p-4 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-center text-xs">
-                    Please transfer amount to {paymentMethod.toUpperCase()} account provided after submission.
+                    Please transfer amount to the CRYPTO wallet provided after submission.
                 </div>
               ) : (
                 <div className="p-3 bg-indigo-50/40 dark:bg-indigo-950/25 border border-indigo-100 dark:border-indigo-900/50 rounded-xl text-left">
@@ -311,7 +312,7 @@ export default function CheckoutModal({
               >
                 <Lock className="w-3.5 h-3.5" />
                 <span>
-                  {actualAmountDue === 0 ? 'Claim License Free' : `Securely Pay $${actualAmountDue}`}
+                  {actualAmountDue === 0 ? 'Claim License Free' : paymentMethod === 'card' ? `Securely Pay $${actualAmountDue}` : `Securely Pay Rs. ${actualAmountDue * 300}`}
                 </span>
               </button>
             )}

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { X, Sparkles, User, Mail, UserCheck, ShieldCheck } from 'lucide-react';
+import { auth, googleProvider, syncUserProfile, getUserProfile } from '../firebase';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -20,52 +22,78 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [username, setUsername] = useState<string>('');
   const [emailAddress, setEmailAddress] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
   const [selectedAvatar, setSelectedAvatar] = useState<string>(AVATAR_PRESETS[0]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState<boolean>(false);
 
   if (!isOpen) return null;
 
-  const handleSubmitSignUp = (e: React.FormEvent) => {
+  const handleSubmitSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim() || !emailAddress.trim()) return;
+    if (!username.trim() || !emailAddress.trim() || !password) return;
 
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, emailAddress, password);
+      // Create user document/sync profile
+      await syncUserProfile(emailAddress, username.trim(), selectedAvatar, []);
       onLoginSuccess(username.trim(), emailAddress.trim(), selectedAvatar);
-      setIsLoading(false);
       onClose();
-    }, 1200);
+    } catch (error) {
+      console.error(error);
+      alert('Error creating account. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!emailAddress.trim()) return;
+    if (!emailAddress.trim() || !password) return;
 
     setIsLoading(true);
-    setTimeout(() => {
-      const derivedName = emailAddress.split('@')[0] || 'Vault Member';
+    try {
+      await signInWithEmailAndPassword(auth, emailAddress, password);
+      const profile = await getUserProfile(emailAddress);
       onLoginSuccess(
-        derivedName.charAt(0).toUpperCase() + derivedName.slice(1), 
+        profile?.name || emailAddress.split('@')[0], 
         emailAddress.trim(), 
-        selectedAvatar
+        profile?.avatar || selectedAvatar
       );
-      setIsLoading(false);
       onClose();
-    }, 1000);
+    } catch (error) {
+      console.error(error);
+      alert('Error signing in. Please check your credentials.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSimulatedGoogleLogin = () => {
+  const handleSimulatedGoogleLogin = async () => {
     setIsGoogleLoading(true);
-    setTimeout(() => {
-      onLoginSuccess(
-        'Developer Guest', 
-        'guest.dev@aether-marketplace.io', 
-        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120'
-      );
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      if (user.email) {
+        let profile = await getUserProfile(user.email);
+        if (!profile) {
+            await syncUserProfile(user.email, user.displayName || 'Guest', user.photoURL || selectedAvatar, []);
+            profile = await getUserProfile(user.email);
+        }
+        onLoginSuccess(
+          profile?.name || user.displayName || 'Guest', 
+          user.email, 
+          profile?.avatar || user.photoURL || selectedAvatar
+        );
+        onClose();
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Error signing in with Google.');
+    } finally {
       setIsGoogleLoading(false);
-      onClose();
-    }, 1200);
+    }
   };
 
   return (
@@ -136,6 +164,19 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
                     <Mail className="w-4 h-4" />
                   </div>
                 </div>
+              </div>
+              
+              <div>
+                <label className="block text-[10px] font-mono text-zinc-450 dark:text-zinc-405 tracking-wide uppercase mb-1">Password</label>
+                <input
+                  id="auth-input-password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full text-xs p-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
+                />
               </div>
 
               {isLoading ? (
@@ -269,6 +310,19 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
                   <Mail className="w-4 h-4" />
                 </div>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-mono text-zinc-450 dark:text-zinc-405 tracking-wide uppercase mb-1">Password</label>
+              <input
+                id="auth-input-password-signup"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full text-xs p-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
+              />
             </div>
 
             {isLoading ? (

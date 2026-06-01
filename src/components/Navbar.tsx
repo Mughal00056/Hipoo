@@ -29,6 +29,7 @@ interface NavbarProps {
   setActiveCategory: (category: string) => void;
   user: UserProfile;
   setIsAuthModalOpen: (open: boolean) => void;
+  setIsAdminPanelOpen: (open: boolean) => void;
   setIsDashboardOpen: (open: boolean) => void;
   onLogout: () => void;
   onBrandClick: () => void;
@@ -68,6 +69,7 @@ export default function Navbar({
   setActiveCategory,
   user,
   setIsAuthModalOpen,
+  setIsAdminPanelOpen,
   setIsDashboardOpen,
   onLogout,
   onBrandClick,
@@ -125,7 +127,16 @@ export default function Navbar({
           {/* Controls */}
           <div className="flex items-center gap-2 sm:gap-3.5">
 
-            {/* Wishlist Indicator (Leads to Dashboard wishlist) */}
+            {/* Admin Panel Trigger */}
+            {user.isAdmin && (
+              <button
+                onClick={() => setIsAdminPanelOpen(true)}
+                className="p-2.5 text-zinc-500 hover:text-indigo-600 dark:text-slate-450 dark:hover:text-indigo-400 rounded-lg bg-zinc-100/50 dark:bg-white/5 hover:bg-zinc-100 dark:hover:bg-white/10 border border-transparent dark:border-white/10 transition-colors cursor-pointer"
+                title="Admin Panel"
+              >
+                <Terminal className="w-5 h-5" />
+              </button>
+            )}
             <button
               id="wishlist-trigger-btn"
               onClick={() => {

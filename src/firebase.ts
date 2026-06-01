@@ -153,5 +153,27 @@ export async function getUserPurchases(email: string) {
   }
 }
 
-// Bootstrap initial connectivity check
-testConnection();
+export async function getPaymentDetails() {
+  const path = 'settings/paymentDetails';
+  try {
+    const docRef = doc(db, 'settings', 'paymentDetails');
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      return snap.data();
+    }
+    return { easypaisaNumber: '', jazzcashNumber: '', cryptoAddress: '' };
+  } catch (error) {
+    handleFirestoreError(error, OperationType.GET, path);
+    return { easypaisaNumber: '', jazzcashNumber: '', cryptoAddress: '' };
+  }
+}
+
+export async function updatePaymentDetails(details: { easypaisaNumber: string, jazzcashNumber: string, cryptoAddress: string }) {
+  const path = 'settings/paymentDetails';
+  try {
+    const docRef = doc(db, 'settings', 'paymentDetails');
+    await setDoc(docRef, details, { merge: true });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, path);
+  }
+}

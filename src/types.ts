@@ -51,6 +51,7 @@ export interface UserProfile {
   name: string;
   avatar: string;
   isLoggedIn: boolean;
+  isAdmin: boolean;
   wishlistIds: string[];
   purchasedProducts: Purchase[];
 }

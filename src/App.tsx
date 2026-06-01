@@ -34,6 +34,7 @@ import CartDrawer from './components/CartDrawer';
 import CheckoutModal from './components/CheckoutModal';
 import Dashboard from './components/Dashboard';
 import AuthModal from './components/AuthModal';
+import { AdminPanel } from './admin/AdminPanel';
 import { syncUserProfile, getUserProfile, recordPurchase, getUserPurchases } from './firebase';
 
 const CIRCLE_CATEGORIES = [
@@ -97,6 +98,7 @@ export default function App() {
       name: '',
       avatar: '',
       isLoggedIn: false,
+      isAdmin: false,
       wishlistIds: [],
       purchasedProducts: []
     };
@@ -106,6 +108,7 @@ export default function App() {
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState<boolean>(false);
   const [isDashboardOpen, setIsDashboardOpen] = useState<boolean>(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [activeFullImage, setActiveFullImage] = useState<string | null>(null);
@@ -616,6 +619,7 @@ export default function App() {
         name: finalName,
         avatar: finalAvatar,
         isLoggedIn: true,
+        isAdmin: firebaseProfile?.isAdmin || false,
         wishlistIds: finalWishlist,
         purchasedProducts: mergedPurchasedProducts
       });
@@ -879,6 +883,7 @@ export default function App() {
         setActiveCategory={setActiveCategory}
         user={user}
         setIsAuthModalOpen={setIsAuthModalOpen}
+        setIsAdminPanelOpen={setIsAdminPanelOpen}
         setIsDashboardOpen={setIsDashboardOpen}
         onLogout={handleLogout}
         onBrandClick={() => {
@@ -1055,24 +1060,26 @@ export default function App() {
               </AnimatePresence>
             </div>
             
-            {/* Quick Next/Prev buttons overlay - Frosted glass finish buttons */}
-            <div className="absolute right-4 bottom-4 sm:right-6 sm:bottom-6 flex items-center gap-2 z-20">
-              <button
-                onClick={() => setSpotlightIndex((prev) => (prev === 0 ? spotlightProducts.length - 1 : prev - 1))}
-                className="w-8 h-8 rounded-full bg-zinc-250/80 dark:bg-zinc-900/50 hover:bg-zinc-350 dark:hover:bg-zinc-800 text-zinc-700 dark:text-slate-400 hover:text-zinc-900 dark:hover:text-white flex items-center justify-center border border-zinc-300/40 dark:border-white/10 transition-all active:scale-90 cursor-pointer backdrop-blur-md"
-                title="Swipe Spotlight Left"
-                aria-label="Previous Slide Item"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7"/></svg>
-              </button>
-              <button
-                onClick={() => setSpotlightIndex((prev) => (prev + 1) % spotlightProducts.length)}
-                className="w-8 h-8 rounded-full bg-zinc-250/80 dark:bg-zinc-900/50 hover:bg-zinc-350 dark:hover:bg-zinc-800 text-zinc-700 dark:text-slate-400 hover:text-zinc-900 dark:hover:text-white flex items-center justify-center border border-zinc-300/40 dark:border-white/10 transition-all active:scale-90 cursor-pointer backdrop-blur-md"
-                title="Swipe Spotlight Right"
-                aria-label="Next Slide Item"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7"/></svg>
-              </button>
+            <div className="absolute right-4 bottom-24 sm:right-6 sm:bottom-28 flex flex-col items-end gap-3 z-20">
+              
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setSpotlightIndex((prev) => (prev === 0 ? spotlightProducts.length - 1 : prev - 1))}
+                  className="w-10 h-10 rounded-full bg-white/90 dark:bg-zinc-800/90 hover:bg-white dark:hover:bg-zinc-700 text-zinc-900 dark:text-white flex items-center justify-center border border-zinc-200 dark:border-zinc-700 transition-all active:scale-90 cursor-pointer backdrop-blur shadow-lg"
+                  title="Swipe Spotlight Left"
+                  aria-label="Previous Slide Item"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                <button
+                  onClick={() => setSpotlightIndex((prev) => (prev + 1) % spotlightProducts.length)}
+                  className="w-10 h-10 rounded-full bg-white/90 dark:bg-zinc-800/90 hover:bg-white dark:hover:bg-zinc-700 text-zinc-900 dark:text-white flex items-center justify-center border border-zinc-200 dark:border-zinc-700 transition-all active:scale-90 cursor-pointer backdrop-blur shadow-lg"
+                  title="Swipe Spotlight Right"
+                  aria-label="Next Slide Item"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7"/></svg>
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -1307,6 +1314,12 @@ export default function App() {
             isOpen={isAuthModalOpen}
             onClose={() => setIsAuthModalOpen(false)}
             onLoginSuccess={handleLoginSuccess}
+          />
+        )}
+        {isAdminPanelOpen && (
+          <AdminPanel
+            isOpen={isAdminPanelOpen}
+            onClose={() => setIsAdminPanelOpen(false)}
           />
         )}
       </AnimatePresence>
@@ -1778,8 +1791,6 @@ export default function App() {
                             </div>
                           </div>
 
-                          </div>
-
                           <button
                             type="submit"
                             className="w-full mt-2 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-sans font-bold text-xs rounded-xl active:scale-99 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
@@ -1811,18 +1822,6 @@ export default function App() {
                         </p>
 
                         <form onSubmit={handleCustomLogoSubmit} className="space-y-3.5">
-                          <div>
-                            <label className="block text-[10px] font-mono text-emerald-600 dark:text-emerald-400 tracking-wide uppercase mb-1">Logo Label / Subtitle</label>
-                            <input
-                              type="text"
-                              required
-                              value={logoShortDesc}
-                              onChange={(e) => setLogoShortDesc(e.target.value)}
-                              placeholder="e.g. Minimalist glowing geometric ring emblem"
-                              className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-805 rounded-xl outline-none focus:border-emerald-500 text-zinc-900 dark:text-white transition-colors"
-                            />
-                          </div>
-
                           <div>
                             <label className="block text-[10px] font-mono text-emerald-600 dark:text-emerald-400 tracking-wide uppercase mb-1">Logo Image Preview URL</label>
                             <input
@@ -1865,8 +1864,6 @@ export default function App() {
                                 className="w-full text-xs p-2 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-805 rounded-xl outline-none focus:border-emerald-500 text-zinc-900 dark:text-white transition-colors"
                               />
                             </div>
-                          </div>
-
                           </div>
 
                           <button
