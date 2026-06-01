@@ -10,6 +10,8 @@ import {
   Star, 
   RotateCcw, 
   ArrowRight, 
+  ChevronLeft,
+  ChevronRight,
   Search, 
   SlidersHorizontal,
   ChevronDown,
@@ -958,20 +960,42 @@ export default function App() {
                 <span className="text-[11px] font-mono tracking-widest text-indigo-600 dark:text-indigo-300 uppercase font-bold">Featured Spotlight</span>
               </div>
               
-              {/* Glass Slider navigation dot indicators */}
-              <div className="flex items-center gap-1.5 self-end sm:self-auto bg-zinc-200/40 dark:bg-white/5 py-1 px-2 rounded-full border border-zinc-300/30 dark:border-white/5">
-                {spotlightProducts.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setSpotlightIndex(idx)}
-                    className={`h-2.5 rounded-full transition-all duration-350 cursor-pointer ${
-                      spotlightIndex === idx 
-                        ? 'w-6 bg-indigo-600 dark:bg-indigo-400' 
-                        : 'w-2.5 bg-zinc-400/40 dark:bg-white/10 hover:bg-zinc-400/60 dark:hover:bg-white/20'
-                    }`}
-                    aria-label={`Slide ${idx + 1}`}
-                  />
-                ))}
+              {/* Glass Slider navigation dot indicators & high-contrast Lucide Chevron controls */}
+              <div id="spotlight-navigator" className="flex items-center gap-2 self-end sm:self-auto relative z-20">
+                <button
+                  id="spotlight-prev-arrow"
+                  onClick={() => setSpotlightIndex((prev) => (prev === 0 ? spotlightProducts.length - 1 : prev - 1))}
+                  className="w-8 h-8 rounded-full bg-zinc-200/60 hover:bg-zinc-300/80 dark:bg-white/5 dark:hover:bg-white/10 text-zinc-800 dark:text-zinc-100 flex items-center justify-center border border-zinc-300/30 dark:border-white/5 transition-all active:scale-90 cursor-pointer shadow-sm"
+                  title="Previous Spotlight Asset"
+                  aria-label="Previous Spotlight slide"
+                >
+                  <ChevronLeft className="w-4.5 h-4.5" />
+                </button>
+
+                <div className="flex items-center gap-1.5 bg-zinc-200/40 dark:bg-white/5 py-1.5 px-2.5 rounded-full border border-zinc-300/30 dark:border-white/5">
+                  {spotlightProducts.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setSpotlightIndex(idx)}
+                      className={`h-2.5 rounded-full transition-all duration-350 cursor-pointer ${
+                        spotlightIndex === idx 
+                          ? 'w-6 bg-indigo-600 dark:bg-indigo-400' 
+                          : 'w-2.5 bg-zinc-400/40 dark:bg-white/10 hover:bg-zinc-400/60 dark:hover:bg-white/20'
+                      }`}
+                      aria-label={`Slide ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+
+                <button
+                  id="spotlight-next-arrow"
+                  onClick={() => setSpotlightIndex((prev) => (prev + 1) % spotlightProducts.length)}
+                  className="w-8 h-8 rounded-full bg-zinc-200/60 hover:bg-zinc-300/80 dark:bg-white/5 dark:hover:bg-white/10 text-zinc-800 dark:text-zinc-100 flex items-center justify-center border border-zinc-300/30 dark:border-white/5 transition-all active:scale-90 cursor-pointer shadow-sm"
+                  title="Next Spotlight Asset"
+                  aria-label="Next Spotlight slide"
+                >
+                  <ChevronRight className="w-4.5 h-4.5" />
+                </button>
               </div>
             </div>
 
@@ -1058,28 +1082,6 @@ export default function App() {
                   </div>
                 </motion.div>
               </AnimatePresence>
-            </div>
-            
-            <div className="absolute right-4 bottom-32 sm:right-6 sm:bottom-36 flex flex-col items-end gap-3 z-20">
-              
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setSpotlightIndex((prev) => (prev === 0 ? spotlightProducts.length - 1 : prev - 1))}
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center border border-white/20 transition-all active:scale-90 cursor-pointer backdrop-blur-md shadow-lg"
-                  title="Swipe Spotlight Left"
-                  aria-label="Previous Slide Item"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7"/></svg>
-                </button>
-                <button
-                  onClick={() => setSpotlightIndex((prev) => (prev + 1) % spotlightProducts.length)}
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center border border-white/20 transition-all active:scale-90 cursor-pointer backdrop-blur-md shadow-lg"
-                  title="Swipe Spotlight Right"
-                  aria-label="Next Slide Item"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7"/></svg>
-                </button>
-              </div>
             </div>
           </div>
         )}

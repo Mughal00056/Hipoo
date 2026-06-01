@@ -165,10 +165,10 @@ export default function CheckoutModal({
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col"
+        className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
       >
         {/* Header bar */}
-        <div className="px-6 py-5 border-b border-zinc-150 dark:border-zinc-900 bg-zinc-50 dark:bg-zinc-900/10 flex justify-between items-center">
+        <div className="px-6 py-5 border-b border-zinc-150 dark:border-zinc-900 bg-zinc-50 dark:bg-zinc-900/10 flex justify-between items-center shrink-0">
           <div className="flex items-center gap-2">
             <Lock className="w-4 h-4 text-emerald-500" />
             <h3 className="font-sans font-bold text-sm text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
@@ -186,7 +186,7 @@ export default function CheckoutModal({
 
         {/* Content switch */}
         {step === 'checkout' ? (
-          <form onSubmit={handlePaySubmit} className="p-6 space-y-4">
+          <form onSubmit={handlePaySubmit} className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0">
             
             {/* Cart summary preview */}
             <div className="p-4 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/30 text-xs">
@@ -407,7 +407,7 @@ export default function CheckoutModal({
           </form>
         ) : step === 'pending' ? (
           /* PENDING STATE PANEL */
-          <div className="p-6 text-center space-y-5">
+          <div className="p-6 text-center space-y-5 overflow-y-auto flex-1 min-h-0">
             <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto">
               <Loader2 className="w-7 h-7 animate-spin" />
             </div>
@@ -424,7 +424,7 @@ export default function CheckoutModal({
           </div>
         ) : (
           /* SUCCESS STATE PANEL */
-          <div className="p-6 text-center space-y-5">
+          <div className="p-6 text-center space-y-5 overflow-y-auto flex-1 min-h-0">
             
             <div className="space-y-2">
               <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">

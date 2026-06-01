@@ -177,3 +177,32 @@ export async function updatePaymentDetails(details: { easypaisaNumber: string, j
     handleFirestoreError(error, OperationType.WRITE, path);
   }
 }
+
+export async function getPromoCodes() {
+  const path = 'settings/promoCodes';
+  try {
+    const docRef = doc(db, 'settings', 'promoCodes');
+    const snap = await getDoc(docRef);
+    if (snap.exists() && snap.data()?.codes) {
+      return snap.data().codes as { code: string; percent: number; description?: string }[];
+    }
+  } catch (error) {
+    console.warn('Silent fallback for promo codes (uninitialized or restricted):', error);
+  }
+  return [
+    { code: 'AETHER20', percent: 20, description: '20% off direct license discount' },
+    { code: 'WELCOME20', percent: 20, description: 'Welcome code subtracted 20%' },
+    { code: 'FREEBIE', percent: 100, description: '100% full asset unlock' }
+  ];
+}
+
+export async function updatePromoCodes(codes: { code: string; percent: number; description?: string }[]) {
+  const path = 'settings/promoCodes';
+  try {
+    const docRef = doc(db, 'settings', 'promoCodes');
+    await setDoc(docRef, { codes }, { merge: true });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, path);
+  }
+}
+

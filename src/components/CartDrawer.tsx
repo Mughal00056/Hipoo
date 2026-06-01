@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Trash2, Tag, ArrowRight, ShieldCheck, ShoppingCart, Percent } from 'lucide-react';
 import { CartItem } from '../types';
@@ -20,11 +20,22 @@ export default function CartDrawer({
   onClearCart,
   onTriggerCheckout
 }: CartDrawerProps) {
-  const [promoCode, setPromoCode] = useState<string>('');
+   const [promoCode, setPromoCode] = useState<string>('');
   const [appliedPromo, setAppliedPromo] = useState<string>('');
   const [discountPercent, setDiscountPercent] = useState<number>(0);
   const [promoError, setPromoError] = useState<string>('');
   const [promoSuccess, setPromoSuccess] = useState<string>('');
+  const [promoCodesList, setPromoCodesList] = useState<{ code: string; percent: number; description?: string }[]>([]);
+
+  useEffect(() => {
+    import('../firebase').then(f => f.getPromoCodes()).then(list => {
+      if (list && list.length > 0) {
+        setPromoCodesList(list);
+      }
+    }).catch(err => {
+      console.warn('Unable to get live promos, using local static values:', err);
+    });
+  }, [isOpen]);
 
   const handleApplyPromo = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,15 +43,18 @@ export default function CartDrawer({
 
     if (!code) return;
 
-    if (code === 'WELCOME20' || code === 'AETHER20') {
+    // Direct dynamic catalog search with fallback representation
+    const activePromos = promoCodesList.length > 0 ? promoCodesList : [
+      { code: 'AETHER20', percent: 20 },
+      { code: 'WELCOME20', percent: 20 },
+      { code: 'FREEBIE', percent: 100 }
+    ];
+
+    const matched = activePromos.find(p => p.code === code);
+    if (matched) {
       setAppliedPromo(code);
-      setDiscountPercent(20);
-      setPromoSuccess('Promo WELCOME20 applied! 20% discount subtracted.');
-      setPromoError('');
-    } else if (code === 'FREEBIE') {
-      setAppliedPromo(code);
-      setDiscountPercent(100);
-      setPromoSuccess('Ultimate promotion FREEBIE applied! 100% discount granted.');
+      setDiscountPercent(matched.percent);
+      setPromoSuccess(`Promo ${code} applied! ${matched.percent}% discount subtracted.`);
       setPromoError('');
     } else {
       setPromoError('Unknown promo code. Try AETHER20 or FREEBIE!');
