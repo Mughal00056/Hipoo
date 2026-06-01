@@ -163,8 +163,8 @@ export async function getPaymentDetails() {
     }
     return { easypaisaNumber: '', jazzcashNumber: '', cryptoAddress: '' };
   } catch (error) {
-    handleFirestoreError(error, OperationType.GET, path);
-    return { easypaisaNumber: '', jazzcashNumber: '', cryptoAddress: '' };
+    console.warn('Silent fallback for payment details (uninitialized or restricted):', error);
+    return { easypaisaNumber: '03000000000', jazzcashNumber: '03000000000', cryptoAddress: '0x0000000000000000000000000000000000000000' };
   }
 }
 

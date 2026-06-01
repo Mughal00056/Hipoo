@@ -166,9 +166,6 @@ export default function Dashboard({
                       className="p-4 bg-zinc-50/60 dark:bg-zinc-900/40 rounded-xl border border-zinc-150 dark:border-zinc-900/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                     >
                       <div className="space-y-1 flex-1 min-w-0">
-                        <span className="text-[9px] font-mono bg-indigo-50/70 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-450 px-2 py-0.5 rounded uppercase font-bold">
-                          {p.provider} Storage Unlock
-                        </span>
                         <h4 className="text-sm sm:text-base font-sans font-bold text-zinc-900 dark:text-zinc-100 truncate">
                           {p.productTitle}
                         </h4>
@@ -178,19 +175,13 @@ export default function Dashboard({
                           <span>Price: <span className="font-mono text-zinc-700 dark:text-zinc-300">${p.amountPaid}</span></span>
                         </div>
 
-                        {/* Token item copy */}
-                        <div className="pt-2 flex items-center gap-2 max-w-xs sm:max-w-md">
-                          <span className="text-[10px] text-zinc-400 shrink-0 font-mono select-none">License Key:</span>
-                          <div className="flex items-center gap-2 bg-white dark:bg-zinc-950 px-2 py-1 rounded-md border border-zinc-200 dark:border-zinc-800 text-[10px] font-mono text-zinc-650 dark:text-zinc-400 flex-1 min-w-0">
-                            <span className="truncate">{p.unlockToken}</span>
-                            <button
-                              id={`dash-copy-${p.id}`}
-                              onClick={() => handleCopy(p.unlockToken, p.id)}
-                              className="text-zinc-400 hover:text-zinc-650 cursor-pointer"
-                              title="Copy License Token"
-                            >
-                              {copiedId === p.id ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                            </button>
+                        {/* Direct Raw URL display */}
+                        <div className="pt-2">
+                          <div className="bg-white dark:bg-zinc-950 p-2 rounded-lg border border-zinc-200 dark:border-zinc-850 text-[10px] font-mono text-indigo-600 dark:text-indigo-400 shadow-inner">
+                            <span className="text-zinc-400 block mb-0.5 text-[9px] uppercase tracking-wider">Direct Download URL:</span>
+                            <a href={p.downloadUrl} target="_blank" rel="noopener noreferrer" className="hover:underline break-all">
+                              {p.downloadUrl}
+                            </a>
                           </div>
                         </div>
                       </div>
@@ -202,10 +193,10 @@ export default function Dashboard({
                           href={p.downloadUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-505 text-white text-xs font-sans font-semibold py-2 px-4 rounded-xl transition-all shadow-sm cursor-pointer"
+                          className="flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-sans font-semibold py-2 px-4 rounded-xl transition-all shadow-sm cursor-pointer"
                         >
                           <Download className="w-4 h-4" />
-                          <span>Get Link</span>
+                          <span>Download File</span>
                           <ExternalLink className="w-3.5 h-3.5" />
                         </a>
                       </div>

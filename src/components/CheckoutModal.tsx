@@ -434,37 +434,26 @@ export default function CheckoutModal({
               <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto">
                 Your secure licenses have been written and attached. Check your digital dashboard to view, copy, or reload links.
               </p>
-            </div>
-
-            {/* Generated Unlocked Assets */}
+                       {/* Generated Unlocked Assets */}
             <div className="space-y-3 text-left">
-              <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest pl-1">Unlocked Download Tokens</span>
+              <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest pl-1">Direct Download Links</span>
               <div className="space-y-2.5">
                 {cart.map(item => {
-                  const matchingToken = unlockedKeys.find(k => k.productId === item.product.id)?.token || 'TOKEN-VERIFIED';
                   return (
                     <div
                       key={item.product.id}
                       className="p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-150 dark:border-zinc-850 rounded-xl"
                     >
-                      <div className="flex items-center justify-between gap-1 mb-1">
-                        <span className="text-[10px] font-semibold text-zinc-500 truncate max-w-[200px]">{item.product.title}</span>
-                        <span className="text-[9px] font-mono bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-400 py-0.5 px-1.5 rounded">
-                          {item.product.provider} Secure
-                        </span>
+                      <div className="flex items-center justify-between gap-1 mb-1.5">
+                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-50 truncate max-w-[285px]">{item.product.title}</span>
                       </div>
 
-                      {/* Token display */}
-                      <div className="flex justify-between items-center gap-2 bg-white dark:bg-zinc-950 p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-[11px] font-mono mb-2">
-                        <span className="text-zinc-600 dark:text-zinc-300 truncate">{matchingToken}</span>
-                        <button
-                          id={`copy-token-${item.product.id}`}
-                          onClick={() => handleCopy(matchingToken, item.product.id)}
-                          className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
-                          title="Copy Unlock License Key"
-                        >
-                          {copiedId === item.product.id ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                        </button>
+                      {/* Direct Raw URL display */}
+                      <div className="bg-white dark:bg-zinc-950 p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-850 text-[10px] font-mono mb-2 break-all text-indigo-600 dark:text-indigo-400 shadow-inner">
+                        <span className="text-zinc-400 block mb-0.5 text-[9px] uppercase tracking-wider">Direct URL:</span>
+                        <a href={item.product.downloadUrl} target="_blank" rel="noopener noreferrer" className="hover:underline break-all">
+                          {item.product.downloadUrl}
+                        </a>
                       </div>
 
                       {/* Download Link anchor */}
@@ -483,7 +472,7 @@ export default function CheckoutModal({
                   );
                 })}
               </div>
-            </div>
+            </div>   </div>
 
             {/* Quick close redirect buttons */}
             <div className="pt-3 border-t border-zinc-150 dark:border-zinc-900 flex flex-col gap-2">
