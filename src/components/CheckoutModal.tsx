@@ -42,7 +42,8 @@ export default function CheckoutModal({
   const [cvc, setCvc] = useState<string>('');
   
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [step, setStep] = useState<'checkout' | 'success'>('checkout');
+  const [step, setStep] = useState<'checkout' | 'pending' | 'success'>('checkout');
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'easypaisa' | 'jazzcash' | 'crypto'>('card');
   const [errorText, setErrorText] = useState<string>('');
   const [copiedId, setCopiedId] = useState<string>('');
   const [unlockedKeys, setUnlockedKeys] = useState<{ productId: string; token: string }[]>([]);
@@ -117,25 +118,9 @@ export default function CheckoutModal({
     setIsProcessing(true);
     
     setTimeout(() => {
-      // Generate keys
-      const generated = cart.map(item => ({
-        productId: item.product.id,
-        token: `TKN-${item.product.provider.toUpperCase().split(' ')[0]}-${Math.random().toString(36).substring(2, 8).toUpperCase()}-${Date.now().toString().slice(-4)}`
-      }));
-      setUnlockedKeys(generated);
-
-      const purchasePayload = cart.map(item => ({
-        id: item.product.id,
-        price: item.product.price,
-        title: item.product.title,
-        downloadUrl: item.product.downloadUrl,
-        provider: item.product.provider
-      }));
-
-      onPurchaseSuccess(email, purchasePayload);
-      
+      // Don't call onPurchaseSuccess yet
       setIsProcessing(false);
-      setStep('success');
+      setStep('pending');
     }, 2200);
   };
 
@@ -189,6 +174,36 @@ export default function CheckoutModal({
 
             {/* Form controls */}
             <div className="space-y-3">
+              {/* Payment method selector */}
+              <div>
+                <label className="block text-[10px] font-mono text-zinc-405 dark:text-zinc-400 uppercase tracking-wide mb-1">Payment Method</label>
+                <select 
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value as any)}
+                  className="w-full text-xs p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-805 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
+                >
+                  <option value="card">Credit/Debit Card (USD)</option>
+                  <option value="easypaisa">Easypaisa (PKR)</option>
+                  <option value="jazzcash">JazzCash (PKR)</option>
+                  <option value="crypto">Cryptocurrency</option>
+                </select>
+              </div>
+
+              {/* Payment method selector */}
+              <div>
+                <label className="block text-[10px] font-mono text-zinc-405 dark:text-zinc-400 uppercase tracking-wide mb-1">Payment Method</label>
+                <select 
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value as any)}
+                  className="w-full text-xs p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-805 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
+                >
+                  <option value="card">Credit/Debit Card (USD)</option>
+                  <option value="easypaisa">Easypaisa (PKR)</option>
+                  <option value="jazzcash">JazzCash (PKR)</option>
+                  <option value="crypto">Cryptocurrency</option>
+                </select>
+              </div>
+
               {/* Product email */}
               <div>
                 <label className="block text-[10px] font-mono text-zinc-405 dark:text-zinc-400 uppercase tracking-wide mb-1">Receipt & Delivery Email</label>
@@ -203,7 +218,7 @@ export default function CheckoutModal({
                 />
               </div>
 
-              {actualAmountDue > 0 ? (
+              {actualAmountDue > 0 && paymentMethod === 'card' ? (
                 <>
                   {/* Card Name */}
                   <div>
@@ -262,6 +277,10 @@ export default function CheckoutModal({
                     </div>
                   </div>
                 </>
+              ) : actualAmountDue > 0 ? (
+                <div className="p-4 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-center text-xs">
+                    Please transfer amount to {paymentMethod.toUpperCase()} account provided after submission.
+                </div>
               ) : (
                 <div className="p-3 bg-indigo-50/40 dark:bg-indigo-950/25 border border-indigo-100 dark:border-indigo-900/50 rounded-xl text-left">
                   <p className="text-xs text-indigo-600 dark:text-indigo-400 font-sans font-semibold">Free License Selected</p>
@@ -302,6 +321,23 @@ export default function CheckoutModal({
             </div>
 
           </form>
+        ) : step === 'pending' ? (
+          /* PENDING STATE PANEL */
+          <div className="p-6 text-center space-y-5">
+            <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto">
+              <Loader2 className="w-7 h-7 animate-spin" />
+            </div>
+            <h2 className="text-lg font-sans font-bold text-zinc-900 dark:text-white">Transaction Pending</h2>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto">
+              Your payment is being verified by the administrator. Please wait. You will be notified once complete.
+            </p>
+            <button
+              onClick={onClose}
+              className="text-xs text-zinc-400 hover:text-zinc-650 hover:underline cursor-pointer"
+            >
+              Close
+            </button>
+          </div>
         ) : (
           /* SUCCESS STATE PANEL */
           <div className="p-6 text-center space-y-5">

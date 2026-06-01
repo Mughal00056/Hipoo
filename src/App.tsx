@@ -1721,18 +1721,7 @@ export default function App() {
                         </p>
 
                         <form onSubmit={handleCustomAssetSubmit} className="space-y-3.5">
-                          <div>
-                            <label className="block text-[10px] font-mono text-zinc-450 dark:text-zinc-400 tracking-wide uppercase mb-1">Asset Name / Title</label>
-                            <input
-                              type="text"
-                              required
-                              value={customTitle}
-                              onChange={(e) => setCustomTitle(e.target.value)}
-                              placeholder="e.g. Modern UI Dashboard Pack"
-                              className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-805 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
-                            />
-                          </div>
-
+                          
                           <div>
                             <label className="block text-[10px] font-mono text-zinc-455 dark:text-zinc-400 tracking-wide uppercase mb-1">Thumbnail Name / Label</label>
                             <input
@@ -1789,16 +1778,6 @@ export default function App() {
                             </div>
                           </div>
 
-                          <div>
-                            <label className="block text-[10px] font-mono text-zinc-455 dark:text-zinc-400 tracking-wide uppercase mb-1">Digital File Source URL</label>
-                            <input
-                              type="url"
-                              required
-                              value={customDownloadUrl}
-                              onChange={(e) => setCustomDownloadUrl(e.target.value)}
-                              placeholder="https://drive.google.com/..."
-                              className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-805 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
-                            />
                           </div>
 
                           <button
@@ -1832,18 +1811,6 @@ export default function App() {
                         </p>
 
                         <form onSubmit={handleCustomLogoSubmit} className="space-y-3.5">
-                          <div>
-                            <label className="block text-[10px] font-mono text-emerald-600 dark:text-emerald-400 tracking-wide uppercase mb-1">Logo Name / Title</label>
-                            <input
-                              type="text"
-                              required
-                              value={logoTitle}
-                              onChange={(e) => setLogoTitle(e.target.value)}
-                              placeholder="e.g. Starlight Quantum Logo"
-                              className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-805 rounded-xl outline-none focus:border-emerald-500 text-zinc-900 dark:text-white transition-colors"
-                            />
-                          </div>
-
                           <div>
                             <label className="block text-[10px] font-mono text-emerald-600 dark:text-emerald-400 tracking-wide uppercase mb-1">Logo Label / Subtitle</label>
                             <input
@@ -1900,16 +1867,6 @@ export default function App() {
                             </div>
                           </div>
 
-                          <div>
-                            <label className="block text-[10px] font-mono text-emerald-600 dark:text-emerald-400 tracking-wide uppercase mb-1">Vector Source Link / Download URL</label>
-                            <input
-                              type="url"
-                              required
-                              value={logoDownloadUrl}
-                              onChange={(e) => setLogoDownloadUrl(e.target.value)}
-                              placeholder="https://drive.google.com/..."
-                              className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-805 rounded-xl outline-none focus:border-emerald-500 text-zinc-900 dark:text-white transition-colors"
-                            />
                           </div>
 
                           <button
