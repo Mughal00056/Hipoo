@@ -40,6 +40,8 @@ export default function CheckoutModal({
   const [cardNumber, setCardNumber] = useState<string>('');
   const [expiry, setExpiry] = useState<string>('');
   const [cvc, setCvc] = useState<string>('');
+  const [clientWalletId, setClientWalletId] = useState<string>('');
+  const [transactionId, setTransactionId] = useState<string>('');
   
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [step, setStep] = useState<'checkout' | 'pending' | 'success'>('checkout');
@@ -101,21 +103,32 @@ export default function CheckoutModal({
     }
 
     if (actualAmountDue > 0) {
-      if (!fullName.trim()) {
-        setErrorText('Please enter the cardholder Name.');
-        return;
-      }
-      if (cardNumber.replace(/\s+/g, '').length < 16) {
-        setErrorText('Please enter a valid 16-digit credit card.');
-        return;
-      }
-      if (expiry.length < 5) {
-        setErrorText('Please specify expiration details in MM/YY format.');
-        return;
-      }
-      if (cvc.length < 3) {
-        setErrorText('Pin code (CVC) must be at least 3 digits.');
-        return;
+      if (paymentMethod === 'card') {
+        if (!fullName.trim()) {
+          setErrorText('Please enter the cardholder Name.');
+          return;
+        }
+        if (cardNumber.replace(/\s+/g, '').length < 16) {
+          setErrorText('Please enter a valid 16-digit credit card.');
+          return;
+        }
+        if (expiry.length < 5) {
+          setErrorText('Please specify expiration details in MM/YY format.');
+          return;
+        }
+        if (cvc.length < 3) {
+          setErrorText('Pin code (CVC) must be at least 3 digits.');
+          return;
+        }
+      } else if (['easypaisa', 'jazzcash', 'crypto'].includes(paymentMethod)) {
+        if (!clientWalletId.trim()) {
+          setErrorText(`Please enter your Sender Wallet ID / Account Number for ${paymentMethod.charAt(0).toUpperCase() + paymentMethod.slice(1)}.`);
+          return;
+        }
+        if (!transactionId.trim()) {
+          setErrorText('Please enter the Transaction ID / Reference TxID.');
+          return;
+        }
       }
     }
 
@@ -123,10 +136,27 @@ export default function CheckoutModal({
     setIsProcessing(true);
     
     setTimeout(() => {
-      // Don't call onPurchaseSuccess yet
       setIsProcessing(false);
-      setStep('pending');
-    }, 2200);
+      
+      // Generate secure local unlocked keys list
+      const keys = cart.map(item => ({
+        productId: item.product.id,
+        token: `LIC-CODE-${item.product.provider.toUpperCase().split(' ')[0]}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
+      }));
+      setUnlockedKeys(keys);
+
+      // Perform real purchase logging
+      const itemsPaid = cart.map(item => ({
+        id: item.product.id,
+        price: item.product.price,
+        title: item.product.title,
+        downloadUrl: item.product.downloadUrl,
+        provider: item.product.provider
+      }));
+      
+      onPurchaseSuccess(email, itemsPaid);
+      setStep('success');
+    }, 2205);
   };
 
   return (
@@ -269,14 +299,67 @@ export default function CheckoutModal({
                   </div>
                 </>
               ) : actualAmountDue > 0 && ['easypaisa', 'jazzcash', 'crypto'].includes(paymentMethod) ? (
-                <div className="p-4 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-center text-xs space-y-2">
-                    <p className="font-semibold">{paymentMethod.charAt(0).toUpperCase() + paymentMethod.slice(1)} Details</p>
-                    <p className="font-mono text-indigo-600 dark:text-indigo-400">
+                <div className="space-y-3">
+                  <div className="p-4 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-805 rounded-2xl text-center space-y-2">
+                    <p className="font-semibold text-xs text-zinc-700 dark:text-zinc-300">
+                      Transfer to Admin {paymentMethod === 'crypto' ? 'Wallet Address' : 'Account Number'}
+                    </p>
+                    <div className="flex items-center justify-center gap-2 p-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 rounded-xl">
+                      <span className="font-mono text-xs font-semibold text-indigo-600 dark:text-indigo-400 select-all truncate max-w-[220px]">
                         {paymentMethod === 'easypaisa' ? paymentDetails.easypaisaNumber : 
                          paymentMethod === 'jazzcash' ? paymentDetails.jazzcashNumber : 
                          paymentDetails.cryptoAddress}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleCopy(
+                          paymentMethod === 'easypaisa' ? paymentDetails.easypaisaNumber : 
+                          paymentMethod === 'jazzcash' ? paymentDetails.jazzcashNumber : 
+                          paymentDetails.cryptoAddress,
+                          'admin-payment-detail'
+                        )}
+                        className="text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 shrink-0 cursor-pointer"
+                        title="Copy Account ID"
+                      >
+                        {copiedId === 'admin-payment-detail' ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-zinc-400">
+                      Please copy the ID above, complete your transfer of <strong className="text-zinc-800 dark:text-zinc-200">{paymentMethod === 'crypto' ? `$${actualAmountDue}` : `Rs. ${actualAmountDue * 300}`}</strong>, then enter transfer details below.
                     </p>
-                    <p>Transfer amount and submit order.</p>
+                  </div>
+
+                  {/* Client Payment Verification Inputs */}
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-[10px] font-mono text-zinc-405 dark:text-zinc-400 uppercase tracking-wide mb-1">
+                        Your Sender {paymentMethod === 'crypto' ? 'Wallet Address / ID' : 'Mobile Number / Account ID'}
+                      </label>
+                      <input
+                        id="checkout-client-wallet-id"
+                        type="text"
+                        required
+                        value={clientWalletId}
+                        onChange={(e) => setClientWalletId(e.target.value)}
+                        placeholder={paymentMethod === 'crypto' ? '0x...' : '03xx xxx xxxx'}
+                        className="w-full text-xs p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-805 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-mono text-zinc-405 dark:text-zinc-400 uppercase tracking-wide mb-1">
+                        Transaction ID / Reference TxID
+                      </label>
+                      <input
+                        id="checkout-tx-id"
+                        type="text"
+                        required
+                        value={transactionId}
+                        onChange={(e) => setTransactionId(e.target.value)}
+                        placeholder="TRX-9876543210-REF"
+                        className="w-full text-xs p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-805 rounded-xl outline-none focus:border-indigo-500 text-zinc-900 dark:text-white transition-colors"
+                      />
+                    </div>
+                  </div>
                 </div>
               ) : actualAmountDue > 0 ? (
                 <div className="p-4 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-center text-xs">

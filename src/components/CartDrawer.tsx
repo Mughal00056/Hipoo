@@ -77,13 +77,13 @@ export default function CartDrawer({
         className="absolute inset-0 bg-zinc-950/75 backdrop-blur-xs"
       />
 
-      <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
+      <div className="absolute inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10 w-full sm:w-auto">
         <motion.div
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-          className="w-screen max-w-md bg-white dark:bg-zinc-950 border-l border-zinc-150 dark:border-zinc-900 shadow-2xl flex flex-col h-full"
+          className="w-full sm:w-screen sm:max-w-md bg-white dark:bg-zinc-950 border-l border-zinc-150 dark:border-zinc-900 shadow-2xl flex flex-col h-full"
         >
           {/* Header */}
           <div className="px-5 py-6 border-b border-zinc-150 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/10 flex items-center justify-between">
