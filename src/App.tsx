@@ -36,7 +36,6 @@ import CartDrawer from './components/CartDrawer';
 import CheckoutModal from './components/CheckoutModal';
 import Dashboard from './components/Dashboard';
 import AuthModal from './components/AuthModal';
-import AdminLogin from './admin/AdminLogin';
 import AdminDashboard from './admin/AdminDashboard';
 import { syncUserProfile, getUserProfile, recordPurchase, getUserPurchases, logoutUser } from './firebase';
 
@@ -738,73 +737,46 @@ export default function App() {
   // Synchronize path state on browser back/forward history transitions
   useEffect(() => {
     const handlePopState = () => {
-      setCurrentPath(window.location.pathname || '/');
+      let path = window.location.pathname || '/';
+      if (!path.startsWith('/admin')) {
+        path = '/admin/dashboard';
+        window.history.replaceState({}, '', '/admin/dashboard');
+      }
+      setCurrentPath(path);
     };
     window.addEventListener('popstate', handlePopState);
+    
+    // Auto-redirect on initial load if route doesn't match admin paths
+    if (!currentPath.startsWith('/admin')) {
+      window.history.replaceState({}, '', '/admin/dashboard');
+      setCurrentPath('/admin/dashboard');
+    }
+
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, []);
+  }, [currentPath]);
 
-  if (currentPath.startsWith('/admin')) {
-    const isUserAdmin = user.isLoggedIn && (user.isAdmin || user.email.toLowerCase() === 'mrflop786@gmail.com');
-    
-    if (currentPath === '/admin/login') {
-      return (
-        <AdminLogin 
-          onAdminAuthenticated={(profile) => {
-            setUser(prev => ({
-              ...prev,
-              email: profile.email,
-              name: profile.name,
-              isLoggedIn: true,
-              isAdmin: true
-            }));
-            triggerToast('🔑 Administrative key authenticated. Workspace decryption successful!');
-          }}
-          onNavigateHome={() => {
-            window.history.pushState({}, '', '/');
-            setCurrentPath('/');
-          }}
-          onNavigateToDashboard={() => {
-            window.history.pushState({}, '', '/admin/dashboard');
-            setCurrentPath('/admin/dashboard');
-          }}
-        />
-      );
-    }
-
-    // Force authorization check for other /admin paths
-    if (!isUserAdmin) {
-      window.history.pushState({}, '', '/admin/login');
-      setTimeout(() => setCurrentPath('/admin/login'), 40);
-      return (
-        <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center font-mono text-zinc-400">
-          <p className="animate-pulse text-xs uppercase tracking-widest text-indigo-400">Auditing active administrative credentials...</p>
-        </div>
-      );
-    }
-
-    return (
-      <AdminDashboard 
-        currentPath={currentPath}
-        onNavigate={(path) => {
-          window.history.pushState({}, '', path);
-          setCurrentPath(path);
-        }}
-        onLogoutAdmin={() => {
-          handleLogout();
-          window.history.pushState({}, '', '/admin/login');
-          setCurrentPath('/admin/login');
-        }}
-        productsRef={products}
-        onProductsUpdated={(pList) => {
-          setProducts(pList);
-          localStorage.setItem('aether-products', JSON.stringify(pList));
-        }}
-      />
-    );
-  }
+  // Bypass login screens entirely. Directly serve the Admin Dashboard.
+  return (
+    <AdminDashboard 
+      currentPath={currentPath.startsWith('/admin') ? currentPath : '/admin/dashboard'}
+      onNavigate={(path) => {
+        window.history.pushState({}, '', path);
+        setCurrentPath(path);
+      }}
+      onLogoutAdmin={() => {
+        // Since login is removed, logout redirects back to the dashboard home safely.
+        window.history.pushState({}, '', '/admin/dashboard');
+        setCurrentPath('/admin/dashboard');
+      }}
+      productsRef={products}
+      onProductsUpdated={(pList) => {
+        setProducts(pList);
+        localStorage.setItem('aether-products', JSON.stringify(pList));
+      }}
+    />
+  );
 
   return (
     <div className={`min-h-screen transition-colors duration-200 bg-zinc-50 text-zinc-900 dark:bg-[#050505] dark:text-slate-200 ${theme === 'dark' ? 'dark' : ''}`}>
