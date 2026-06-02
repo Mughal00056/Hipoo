@@ -28,6 +28,8 @@ export interface Product {
   fileFormat: string;
   version: string;
   reviews: Review[];
+  detailImageUrl?: string;
+  detailText?: string;
 }
 
 export interface CartItem {

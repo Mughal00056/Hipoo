@@ -21,7 +21,11 @@ interface CheckoutModalProps {
   subtotal: number;
   discountAmount: number;
   discountCode: string;
-  onPurchaseSuccess: (email: string, itemsPaid: { id: string; price: number; title: string; downloadUrl: string; provider: DownloadProvider }[]) => void;
+  onPurchaseSuccess: (
+    email: string, 
+    itemsPaid: { id: string; price: number; title: string; downloadUrl: string; provider: DownloadProvider }[],
+    paymentMeta: { method: string; payNumber: string; transactionId: string }
+  ) => void;
   userEmail: string;
 }
 
@@ -154,7 +158,11 @@ export default function CheckoutModal({
         provider: item.product.provider
       }));
       
-      onPurchaseSuccess(email, itemsPaid);
+      onPurchaseSuccess(email, itemsPaid, {
+        method: paymentMethod === 'card' ? 'Credit Card' : paymentMethod === 'easypaisa' ? 'EasyPaisa' : paymentMethod === 'jazzcash' ? 'JazzCash' : 'Cryptocurrency',
+        payNumber: paymentMethod === 'card' ? cardNumber.replace(/\d(?=\d{4})/g, "*") : clientWalletId,
+        transactionId: paymentMethod === 'card' ? `TX-CARD-${Math.random().toString(36).substring(2, 8).toUpperCase()}` : transactionId
+      });
       setStep('pending');
     }, 2205);
   };

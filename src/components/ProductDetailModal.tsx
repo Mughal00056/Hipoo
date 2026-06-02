@@ -170,6 +170,27 @@ export default function ProductDetailModal({
                     </p>
                   </div>
 
+                  {/* Custom Detail Image & Spotlight Text from Admin Panel */}
+                  {product.detailImageUrl && (
+                    <div className="rounded-2xl overflow-hidden border border-zinc-150 dark:border-zinc-900 bg-zinc-50 dark:bg-zinc-900/40">
+                      <img 
+                        src={product.detailImageUrl} 
+                        alt={product.title + " Details Highlight"} 
+                        className="w-full h-auto object-cover max-h-[350px] transition-transform duration-300 hover:scale-[1.01]"
+                        referrerPolicy="no-referrer"
+                      />
+                    </div>
+                  )}
+
+                  {product.detailText && (
+                    <div className="bg-zinc-50 dark:bg-zinc-900/20 border border-zinc-150 dark:border-zinc-900 p-4 rounded-xl">
+                      <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 mb-2">Extended Overview</h4>
+                      <p className="text-sm text-zinc-650 dark:text-zinc-350 leading-relaxed whitespace-pre-line">
+                        {product.detailText}
+                      </p>
+                    </div>
+                  )}
+
                   {/* Bullet Highlights */}
                   <div>
                     <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-400 mb-3">Key Product Features</h4>

@@ -160,49 +160,89 @@ export default function Dashboard({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {user.purchasedProducts.map((p: Purchase) => (
-                    <div
-                      key={p.id}
-                      className="p-4 bg-zinc-50/60 dark:bg-zinc-900/40 rounded-xl border border-zinc-150 dark:border-zinc-900/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                    >
-                      <div className="space-y-1 flex-1 min-w-0">
-                        <h4 className="text-sm sm:text-base font-sans font-bold text-zinc-900 dark:text-zinc-100 truncate">
-                          {p.productTitle}
-                        </h4>
-                        <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-400">
-                          <span>Purchased on: <span className="font-mono">{p.purchaseDate}</span></span>
-                          <span>•</span>
-                          <span>Price: <span className="font-mono text-zinc-700 dark:text-zinc-300">${p.amountPaid}</span></span>
-                        </div>
+                  {user.purchasedProducts.map((p: Purchase) => {
+                    const isCompleted = !p.status || p.status === 'completed';
+                    const isPending = p.status === 'pending';
+                    const isNotReady = p.status === 'not-ready';
+                    
+                    return (
+                      <div
+                        key={p.id}
+                        className="p-4 bg-zinc-50/60 dark:bg-zinc-900/40 rounded-xl border border-zinc-150 dark:border-zinc-900/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                      >
+                        <div className="space-y-1 flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="text-sm sm:text-base font-sans font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                              {p.productTitle}
+                            </h4>
+                            {isPending && (
+                              <span className="px-2 py-0.5 text-[9px] font-mono font-bold bg-amber-500/10 text-amber-500 rounded border border-amber-500/25 uppercase tracking-wider animate-pulse">
+                                Pending Approval
+                              </span>
+                            )}
+                            {isNotReady && (
+                              <span className="px-2 py-0.5 text-[9px] font-mono font-bold bg-indigo-500/10 text-indigo-500 rounded border border-indigo-500/25 uppercase tracking-wider animate-pulse">
+                                Preparing Assets
+                              </span>
+                            )}
+                            {isCompleted && (
+                              <span className="px-2 py-0.5 text-[9px] font-mono font-bold bg-emerald-500/10 text-emerald-500 rounded border border-emerald-500/25 uppercase tracking-wider">
+                                Unlocked
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-400">
+                            <span>Purchased on: <span className="font-mono">{p.purchaseDate}</span></span>
+                            <span>•</span>
+                            <span>Price: <span className="font-mono text-zinc-700 dark:text-zinc-300">${p.amountPaid}</span></span>
+                          </div>
 
-                        {/* Direct Raw URL display */}
-                        <div className="pt-2">
-                          <div className="bg-white dark:bg-zinc-950 p-2 rounded-lg border border-zinc-200 dark:border-zinc-850 text-[10px] font-mono text-indigo-600 dark:text-indigo-400 shadow-inner">
-                            <span className="text-zinc-400 block mb-0.5 text-[9px] uppercase tracking-wider">Direct Download URL:</span>
-                            <a href={p.downloadUrl} target="_blank" rel="noopener noreferrer" className="hover:underline break-all">
-                              {p.downloadUrl}
-                            </a>
+                          {/* Direct Raw URL display */}
+                          <div className="pt-2">
+                            {isCompleted ? (
+                              <div className="bg-white dark:bg-zinc-950 p-2 rounded-lg border border-zinc-200 dark:border-zinc-850 text-[10px] font-mono text-indigo-600 dark:text-indigo-400 shadow-inner">
+                                <span className="text-zinc-400 block mb-0.5 text-[9px] uppercase tracking-wider">Direct Download URL:</span>
+                                <a href={p.downloadUrl} target="_blank" rel="noopener noreferrer" className="hover:underline break-all">
+                                  {p.downloadUrl}
+                                </a>
+                              </div>
+                            ) : (
+                              <div className="bg-zinc-100 dark:bg-zinc-950/80 p-2.5 rounded-lg border border-dashed border-zinc-200 dark:border-zinc-850 text-[10px] font-mono text-zinc-400 dark:text-zinc-550 italic">
+                                {isPending ? "🔒 Download options locked. Waiting for secure admin payment clearing..." : "🔒 Download options locked. Admin is preparing your package assets..."}
+                              </div>
+                            )}
                           </div>
                         </div>
-                      </div>
 
-                      {/* Download link button */}
-                      <div className="sm:self-center shrink-0">
-                        <a
-                          id={`dash-dl-${p.id}`}
-                          href={p.downloadUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-sans font-semibold py-2 px-4 rounded-xl transition-all shadow-sm cursor-pointer"
-                        >
-                          <Download className="w-4 h-4" />
-                          <span>Download File</span>
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
-                      </div>
+                        {/* Download link button */}
+                        <div className="sm:self-center shrink-0">
+                          {isCompleted ? (
+                            <a
+                              id={`dash-dl-${p.id}`}
+                              href={p.downloadUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-sans font-semibold py-2 px-4 rounded-xl transition-all shadow-sm cursor-pointer"
+                            >
+                              <Download className="w-4 h-4" />
+                              <span>Download File</span>
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                          ) : (
+                            <button
+                              disabled
+                              className="flex items-center justify-center gap-1.5 bg-zinc-150 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-400 dark:text-zinc-500 text-xs font-sans font-semibold py-2 px-4 rounded-xl cursor-not-allowed"
+                            >
+                              <ShieldCheck className="w-4 h-4" />
+                              <span>{isPending ? "Awaiting Approval" : "Preparing Assets"}</span>
+                            </button>
+                          )}
+                        </div>
 
-                    </div>
-                  ))}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

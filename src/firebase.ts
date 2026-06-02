@@ -161,6 +161,24 @@ export async function getUserPurchases(email: string) {
   }
 }
 
+export async function updatePurchaseStatus(email: string, orderId: string, status: 'pending' | 'completed' | 'not-ready') {
+  const userId = email.replace(/[^a-zA-Z0-9_\-]/g, '_');
+  const path = `users/${userId}/purchases`;
+  try {
+    const collRef = collection(db, 'users', userId, 'purchases');
+    const snap = await getDocs(collRef);
+    for (const d of snap.docs) {
+      const data = d.data();
+      if (data.orderId === orderId) {
+        const purchaseRef = doc(db, 'users', userId, 'purchases', d.id);
+        await updateDoc(purchaseRef, { status });
+      }
+    }
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, path);
+  }
+}
+
 export async function getPaymentDetails() {
   const path = 'settings/paymentDetails';
   try {

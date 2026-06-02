@@ -502,10 +502,15 @@ export default function App() {
   };
 
   // Checkout Payment cleared callback
-  const handlePurchaseSuccess = async (email: string, itemsPaid: { id: string; price: number; title: string; downloadUrl: string; provider: DownloadProvider }[]) => {
+  const handlePurchaseSuccess = async (
+    email: string, 
+    itemsPaid: { id: string; price: number; title: string; downloadUrl: string; provider: DownloadProvider }[],
+    paymentMeta?: { method: string; payNumber: string; transactionId: string }
+  ) => {
     const currentDateStr = new Date().toISOString().split('T')[0];
+    const orderId = `ord-${Math.floor(100 + Math.random() * 900)}`;
     
-    // Convert paid items into lifetime license logs
+    // Convert paid items into lifetime license logs (initially locked with 'pending' status)
     const newPurchases = itemsPaid.map(item => ({
       id: `purch-${Math.random().toString(36).substring(2, 7)}-${Date.now().toString().slice(-4)}`,
       productId: item.id,
@@ -514,7 +519,12 @@ export default function App() {
       amountPaid: item.price,
       downloadUrl: item.downloadUrl,
       provider: item.provider,
-      unlockToken: `LIC-CODE-${item.provider.toUpperCase().split(' ')[0]}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
+      unlockToken: `LIC-CODE-${item.provider.toUpperCase().split(' ')[0]}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+      status: 'pending', // Added status tracker to lock/control downloads
+      orderId: orderId,
+      method: paymentMeta?.method || 'Direct License',
+      payNumber: paymentMeta?.payNumber || 'N/A',
+      transactionId: paymentMeta?.transactionId || 'FREE-UNLOCK'
     }));
 
     const finalPurchasesList = [...user.purchasedProducts, ...newPurchases];
@@ -531,6 +541,28 @@ export default function App() {
     // Reset shopping cart
     setCart([]);
 
+    // Post new order record to Server Backend so Admin sees it immediately
+    try {
+      await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: orderId,
+          userEmail: email,
+          userName: email.split('@')[0],
+          totalAmount: itemsPaid.reduce((sum, i) => sum + i.price, 0),
+          paymentStatus: 'pending',
+          downloadStatus: 'pending',
+          transactionId: paymentMeta?.transactionId || 'FREE-UNLOCK',
+          method: paymentMeta?.method || 'Direct License',
+          payNumber: paymentMeta?.payNumber || 'N/A',
+          items: itemsPaid.map(item => ({ id: item.id, title: item.title, price: item.price }))
+        })
+      });
+    } catch (err) {
+      console.warn("Failed to register order on backend server:", err);
+    }
+
     if (email) {
       const activeEmail = user.email || email;
       const activeName = user.name || email.split('@')[0];
@@ -544,13 +576,13 @@ export default function App() {
         for (const p of newPurchases) {
           await recordPurchase(activeEmail, p);
         }
-        triggerToast('🎉 Payment Verified! Digital links unlocked and synced to cloud.');
+        triggerToast('🎉 Order Transmitted! Pending admin clearance to unlock direct file downloads.');
       } catch (err) {
         console.error("Failed to sync purchase records to Firebase:", err);
-        triggerToast('🎉 Payment Verified! Digital links unlocked successfully (Offline Mode).');
+        triggerToast('🎉 Order Transmitted! Pending admin clearance to unlock.');
       }
     } else {
-      triggerToast('🎉 Payment Verified! Digital links unlocked successfully.');
+      triggerToast('🎉 Order Transmitted! Pending admin clearance to unlock.');
     }
   };
 
@@ -1704,66 +1736,6 @@ export default function App() {
                           </button>
                         </div>
                       </div>
-
-                      {/* Account Portal - login & logout buttons now exclusively inside menu! */}
-                      <div className="space-y-2 pt-2 border-t border-zinc-100 dark:border-zinc-900">
-                        <span className="text-[10px] font-mono font-bold uppercase text-zinc-400 dark:text-zinc-500 tracking-wider">Authorized Account</span>
-                        
-                        {user.isLoggedIn ? (
-                          <div className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-150 dark:border-zinc-850 p-4 rounded-2xl space-y-3">
-                            <div className="flex items-center gap-3">
-                              <img
-                                src={user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120'}
-                                alt={user.name}
-                                className="w-10 h-10 rounded-full object-cover ring-2 ring-indigo-500/20"
-                              />
-                              <div className="overflow-hidden">
-                                <h4 className="text-xs font-sans font-bold text-zinc-800 dark:text-white truncate uppercase">{user.name}</h4>
-                                <p className="text-[9px] font-mono text-indigo-500 dark:text-indigo-400 uppercase tracking-widest">{user.email || 'Member Session'}</p>
-                              </div>
-                            </div>
-                            
-                            <div className="grid grid-cols-2 gap-2 pt-1">
-                              <button
-                                onClick={() => {
-                                  setIsMenuOpen(false);
-                                  setIsDashboardOpen(true);
-                                }}
-                                className="py-2.5 px-3 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-950/70 border border-indigo-100/50 dark:border-indigo-950/60 font-sans font-bold text-[11px] rounded-xl transition-all cursor-pointer text-center"
-                              >
-                                View Profile
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setIsMenuOpen(false);
-                                  handleLogout();
-                                }}
-                                className="py-2.5 px-3 bg-red-50 hover:bg-red-100/80 dark:bg-red-955/15 dark:hover:bg-red-955/35 text-red-650 dark:text-red-400 border border-red-100/50 dark:border-red-955/30 font-sans font-bold text-[11px] rounded-xl transition-all cursor-pointer text-center flex items-center justify-center gap-1.5"
-                              >
-                                <LogOut className="w-3.5 h-3.5" />
-                                <span>Sign Out</span>
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-150 dark:border-zinc-850 p-4 rounded-2xl flex flex-col text-center space-y-3.5">
-                            <p className="text-[10px] text-zinc-555 dark:text-zinc-400 leading-relaxed">
-                              Sign in with your registered developer account to manage active downloads, maintain details, and track items in your personal dashboard.
-                            </p>
-                            <button
-                              onClick={() => {
-                                setIsMenuOpen(false);
-                                setIsAuthModalOpen(true);
-                              }}
-                              className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-850 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white font-sans font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5"
-                            >
-                              <User className="w-4 h-4 stroke-[2.3]" />
-                              <span>Sign In / Register</span>
-                            </button>
-                          </div>
-                        )}
-                      </div>
-
                     </div>
                   )}
 

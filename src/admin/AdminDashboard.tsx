@@ -6,7 +6,7 @@ import {
   Hourglass, Ban, Eye, Edit, Trash2, Plus, Star, ToggleLeft, 
   ToggleRight, Search, FileDown, ShieldCheck, Mail, Calendar, Key, AlertTriangle, ArrowLeft
 } from 'lucide-react';
-import { db } from '../firebase';
+import { db, updatePurchaseStatus } from '../firebase';
 import { collection, getDocs, doc, setDoc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { Product, Review, DownloadProvider } from '../types';
 import { INITIAL_PRODUCTS } from '../data';
@@ -57,7 +57,9 @@ export default function AdminDashboard({ currentPath, onNavigate, onLogoutAdmin,
     active: true,
     fileSize: '15 MB',
     fileFormat: 'ZIP File',
-    version: '1.0.0'
+    version: '1.0.0',
+    detailImageUrl: '',
+    detailText: ''
   });
 
   // Category Form State
@@ -179,7 +181,9 @@ export default function AdminDashboard({ currentPath, onNavigate, onLogoutAdmin,
       fileSize: productForm.fileSize,
       fileFormat: productForm.fileFormat,
       version: productForm.version,
-      reviews: editingProductId ? (products.find(p => p.id === editingProductId)?.reviews || []) : []
+      reviews: editingProductId ? (products.find(p => p.id === editingProductId)?.reviews || []) : [],
+      detailImageUrl: productForm.detailImageUrl,
+      detailText: productForm.detailText
     };
 
     try {
@@ -225,7 +229,9 @@ export default function AdminDashboard({ currentPath, onNavigate, onLogoutAdmin,
           active: true,
           fileSize: p.fileSize || '15 MB',
           fileFormat: p.fileFormat || 'ZIP Package',
-          version: p.version || '1.0.0'
+          version: p.version || '1.0.0',
+          detailImageUrl: p.detailImageUrl || '',
+          detailText: p.detailText || ''
         });
       }
     } else if (currentPath === '/admin/products/add') {
@@ -245,7 +251,9 @@ export default function AdminDashboard({ currentPath, onNavigate, onLogoutAdmin,
         active: true,
         fileSize: '15 MB',
         fileFormat: 'ZIP File',
-        version: '1.0.0'
+        version: '1.0.0',
+        detailImageUrl: '',
+        detailText: ''
       });
     }
   }, [currentPath, products]);
@@ -395,10 +403,20 @@ export default function AdminDashboard({ currentPath, onNavigate, onLogoutAdmin,
       });
       
       setOrders(orders.map(o => o.id === orderId ? { ...o, ...updates } : o));
+      
+      const matchedOrder = orders.find(o => o.id === orderId);
+      if (matchedOrder) {
+        // Map order status to Firestore purchase status
+        const nextStatus = updates.paymentStatus === 'paid' ? 'completed' : 
+                           updates.paymentStatus === 'not-ready' ? 'not-ready' : 'pending';
+        
+        await updatePurchaseStatus(matchedOrder.userEmail, orderId, nextStatus).catch(e => console.warn(e));
+      }
+
       if (selectedOrder && selectedOrder.id === orderId) {
         setSelectedOrder({ ...selectedOrder, ...updates });
       }
-      alert("Order fulfillment values saved securely.");
+      alert("Order fulfillment values saved and synchronized securely with user downloads.");
     } catch (err) {
       console.warn(err);
     }
@@ -845,6 +863,30 @@ export default function AdminDashboard({ currentPath, onNavigate, onLogoutAdmin,
                       className="w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl outline-none focus:border-indigo-500 text-white text-xs leading-relaxed"
                     />
                   </div>
+
+                  {/* Custom Detail Image (Optional) */}
+                  <div className="space-y-1.5 col-span-2">
+                    <label className="text-[10px] font-mono tracking-widest text-emerald-450 block uppercase">Custom Detail Tab Image URL (Optional)</label>
+                    <input
+                      type="text"
+                      value={productForm.detailImageUrl}
+                      onChange={(e) => setProductForm({...productForm, detailImageUrl: e.target.value})}
+                      placeholder="Paste additional custom showcase image URL here (e.g. Unsplash URL)..."
+                      className="w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl outline-none focus:border-indigo-550 text-white text-xs font-mono"
+                    />
+                  </div>
+
+                  {/* Custom Detail Text (Optional) */}
+                  <div className="space-y-1.5 col-span-2">
+                    <label className="text-[10px] font-mono tracking-widest text-emerald-450 block uppercase">Custom Detail Tab Text & Additional Features list (Optional)</label>
+                    <textarea
+                      rows={4}
+                      value={productForm.detailText}
+                      onChange={(e) => setProductForm({...productForm, detailText: e.target.value})}
+                      placeholder="Provide additional descriptive text or custom feature notes that will only appear in the product details main tab..."
+                      className="w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl outline-none focus:border-indigo-550 text-white text-xs leading-relaxed"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-3.5 border-t border-zinc-800 pt-5">
@@ -963,12 +1005,18 @@ export default function AdminDashboard({ currentPath, onNavigate, onLogoutAdmin,
                           </td>
                           <td className="p-3 text-center font-mono font-bold text-white">${ord.totalAmount}</td>
                           <td className="p-3 text-center">
-                            <span className={`inline-block px-2.5 py-0.5 rounded font-mono text-[9px] uppercase font-bold shrink-0 ${
+                            <span className={`inline-block px-2.5 py-1 rounded font-mono text-[9px] uppercase font-bold shrink-0 ${
                               ord.paymentStatus === 'paid' 
                                 ? 'bg-green-500/10 text-green-400 border border-green-500/20' 
+                                : ord.paymentStatus === 'not-ready'
+                                ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 animate-pulse'
+                                : ord.paymentStatus === 'failed'
+                                ? 'bg-red-500/10 text-red-400 border border-red-500/20'
                                 : 'bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse'
                             }`}>
-                              Payment: {ord.paymentStatus}
+                              {ord.paymentStatus === 'paid' ? 'Completed' :
+                               ord.paymentStatus === 'not-ready' ? 'Not Ready Yet' :
+                               ord.paymentStatus === 'failed' ? 'Declined' : 'Pending Review'}
                             </span>
                           </td>
                           <td className="p-3 text-right pr-5">
@@ -996,7 +1044,7 @@ export default function AdminDashboard({ currentPath, onNavigate, onLogoutAdmin,
                         ✕
                       </button>
                       <h4 className="text-sm font-mono font-black text-white uppercase tracking-widest border-b border-zinc-800 pb-3 mb-4">
-                        Order Clearence Cockpit (ID: {selectedOrder.id})
+                        Order Clearance Cockpit (ID: {selectedOrder.id})
                       </h4>
 
                       <div className="space-y-4 mb-5 text-xs">
@@ -1033,19 +1081,35 @@ export default function AdminDashboard({ currentPath, onNavigate, onLogoutAdmin,
 
                         <div>
                           <span className="text-[10px] text-zinc-500 uppercase block font-mono mb-2">Mutable Clearings Status</span>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleUpdateOrderStatus(selectedOrder.id, { paymentStatus: 'paid' })}
-                              className="flex-1 py-1.5 px-3 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl font-mono text-[10px] uppercase font-bold hover:bg-green-500 hover:text-white cursor-pointer"
-                            >
-                              Approve Clearing & License
-                            </button>
-                            <button
-                              onClick={() => handleUpdateOrderStatus(selectedOrder.id, { paymentStatus: 'failed' })}
-                              className="flex-1 py-1.5 px-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl font-mono text-[10px] uppercase font-bold hover:bg-red-500 hover:text-white cursor-pointer"
-                            >
-                              Decline Transaction
-                            </button>
+                          <div className="flex flex-col gap-2">
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                onClick={() => handleUpdateOrderStatus(selectedOrder.id, { paymentStatus: 'pending' })}
+                                className="py-1.5 px-3 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-xl font-mono text-[9px] uppercase font-bold hover:bg-amber-500 hover:text-white cursor-pointer transition-colors"
+                              >
+                                Set Pending
+                              </button>
+                              <button
+                                onClick={() => handleUpdateOrderStatus(selectedOrder.id, { paymentStatus: 'not-ready' })}
+                                className="py-1.5 px-3 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-xl font-mono text-[9px] uppercase font-bold hover:bg-indigo-500 hover:text-white cursor-pointer transition-colors"
+                              >
+                                Set Not Ready
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                onClick={() => handleUpdateOrderStatus(selectedOrder.id, { paymentStatus: 'paid' })}
+                                className="py-2 px-3 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl font-mono text-[9px] uppercase font-bold hover:bg-green-500 hover:text-white cursor-pointer transition-colors"
+                              >
+                                Approve & Complete
+                              </button>
+                              <button
+                                onClick={() => handleUpdateOrderStatus(selectedOrder.id, { paymentStatus: 'failed' })}
+                                className="py-2 px-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl font-mono text-[9px] uppercase font-bold hover:bg-red-500 hover:text-white cursor-pointer transition-colors"
+                              >
+                                Decline Order
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
