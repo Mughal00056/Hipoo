@@ -97,10 +97,10 @@ export default function App() {
     }
     return {
       email: '',
-      name: '',
-      avatar: '',
+      name: 'Guest Developer',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120',
       isLoggedIn: false,
-      isAdmin: false,
+      isAdmin: true,
       wishlistIds: [],
       purchasedProducts: []
     };
@@ -738,45 +738,36 @@ export default function App() {
   useEffect(() => {
     const handlePopState = () => {
       let path = window.location.pathname || '/';
-      if (!path.startsWith('/admin')) {
-        path = '/admin/dashboard';
-        window.history.replaceState({}, '', '/admin/dashboard');
-      }
       setCurrentPath(path);
     };
     window.addEventListener('popstate', handlePopState);
     
-    // Auto-redirect on initial load if route doesn't match admin paths
-    if (!currentPath.startsWith('/admin')) {
-      window.history.replaceState({}, '', '/admin/dashboard');
-      setCurrentPath('/admin/dashboard');
-    }
-
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [currentPath]);
+  }, []);
 
-  // Bypass login screens entirely. Directly serve the Admin Dashboard.
-  return (
-    <AdminDashboard 
-      currentPath={currentPath.startsWith('/admin') ? currentPath : '/admin/dashboard'}
-      onNavigate={(path) => {
-        window.history.pushState({}, '', path);
-        setCurrentPath(path);
-      }}
-      onLogoutAdmin={() => {
-        // Since login is removed, logout redirects back to the dashboard home safely.
-        window.history.pushState({}, '', '/admin/dashboard');
-        setCurrentPath('/admin/dashboard');
-      }}
-      productsRef={products}
-      onProductsUpdated={(pList) => {
-        setProducts(pList);
-        localStorage.setItem('aether-products', JSON.stringify(pList));
-      }}
-    />
-  );
+  // Dual View controller
+  if (currentPath.startsWith('/admin')) {
+    return (
+      <AdminDashboard 
+        currentPath={currentPath}
+        onNavigate={(path) => {
+          window.history.pushState({}, '', path);
+          setCurrentPath(path);
+        }}
+        onLogoutAdmin={() => {
+          window.history.pushState({}, '', '/');
+          setCurrentPath('/');
+        }}
+        productsRef={products}
+        onProductsUpdated={(pList) => {
+          setProducts(pList);
+          localStorage.setItem('aether-products', JSON.stringify(pList));
+        }}
+      />
+    );
+  }
 
   return (
     <div className={`min-h-screen transition-colors duration-200 bg-zinc-50 text-zinc-900 dark:bg-[#050505] dark:text-slate-200 ${theme === 'dark' ? 'dark' : ''}`}>
