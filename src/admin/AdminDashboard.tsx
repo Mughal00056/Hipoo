@@ -745,13 +745,13 @@ export default function AdminDashboard({ currentPath, onNavigate, onLogoutAdmin,
 
                   {/* Thumbnail Image URL */}
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-mono tracking-widest text-zinc-400 block uppercase">Asset Unsplash Image URL</label>
+                    <label className="text-[10px] font-mono tracking-widest text-amber-400 block uppercase">Custom Image URL (Unsplash or any hosted image link)</label>
                     <input
                       type="text"
                       required
                       value={productForm.previewImage}
                       onChange={(e) => setProductForm({...productForm, previewImage: e.target.value})}
-                      placeholder="https://images.unsplash.com/photo-..."
+                      placeholder="Paste your custom PNG/JPG image link here (e.g. https://images.unsplash.com/...)"
                       className="w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl outline-none focus:border-indigo-500 text-white text-xs"
                     />
                   </div>
@@ -785,13 +785,13 @@ export default function AdminDashboard({ currentPath, onNavigate, onLogoutAdmin,
 
                   {/* Code-key Download Url */}
                   <div className="space-y-1.5 col-span-2">
-                    <label className="text-[10px] font-mono tracking-widest text-zinc-400 block uppercase">Fulfillment Unlock/Download Link</label>
+                    <label className="text-[10px] font-mono tracking-widest text-amber-400 block uppercase">Custom Download / File Delivery Link (Google Drive, Mega, Dropbox)</label>
                     <input
                       type="text"
                       required
                       value={productForm.downloadUrl}
                       onChange={(e) => setProductForm({...productForm, downloadUrl: e.target.value})}
-                      placeholder="e.g. https://drive.google.com/drive/folders/..."
+                      placeholder="Enter deliverable file/folder link here (e.g. https://drive.google.com/...)"
                       className="w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl outline-none focus:border-indigo-500 text-white text-xs font-mono text-[11px]"
                     />
                   </div>
@@ -836,12 +836,13 @@ export default function AdminDashboard({ currentPath, onNavigate, onLogoutAdmin,
 
                   {/* Descriptions */}
                   <div className="space-y-1.5 col-span-2">
-                    <label className="text-[10px] font-mono tracking-widest text-zinc-400 block uppercase">Full Product Documentation Editorial (HTML/Plain)</label>
+                    <label className="text-[10px] font-mono tracking-widest text-amber-400 block uppercase">Product Details Text & Feature Overview (Markdown / Text supported)</label>
                     <textarea
                       rows={5}
                       value={productForm.description}
                       onChange={(e) => setProductForm({...productForm, description: e.target.value})}
-                      className="w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl outline-none focus:border-indigo-550 text-white text-xs leading-relaxed"
+                      placeholder="Put your detailed text and product description overview here..."
+                      className="w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl outline-none focus:border-indigo-500 text-white text-xs leading-relaxed"
                     />
                   </div>
                 </div>

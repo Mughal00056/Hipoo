@@ -1747,8 +1747,8 @@ export default function App() {
                           </div>
                         ) : (
                           <div className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-150 dark:border-zinc-850 p-4 rounded-2xl flex flex-col text-center space-y-3.5">
-                            <p className="text-[10px] text-zinc-550 dark:text-zinc-400 leading-relaxed">
-                              Create a custom guest profile to manage active downloads, maintain details, and keep items in your localized dashboard directory.
+                            <p className="text-[10px] text-zinc-555 dark:text-zinc-400 leading-relaxed">
+                              Sign in with your registered developer account to manage active downloads, maintain details, and track items in your personal dashboard.
                             </p>
                             <button
                               onClick={() => {
@@ -1758,7 +1758,7 @@ export default function App() {
                               className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-850 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white font-sans font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5"
                             >
                               <User className="w-4 h-4 stroke-[2.3]" />
-                              <span>Create Guest Profile</span>
+                              <span>Sign In / Register</span>
                             </button>
                           </div>
                         )}

@@ -155,7 +155,7 @@ export default function CheckoutModal({
       }));
       
       onPurchaseSuccess(email, itemsPaid);
-      setStep('success');
+      setStep('pending');
     }, 2205);
   };
 
@@ -408,19 +408,73 @@ export default function CheckoutModal({
         ) : step === 'pending' ? (
           /* PENDING STATE PANEL */
           <div className="p-6 text-center space-y-5 overflow-y-auto flex-1 min-h-0">
-            <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto">
-              <Loader2 className="w-7 h-7 animate-spin" />
+            <div className="w-14 h-14 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto ring-4 ring-amber-500/5">
+              <Loader2 className="w-8 h-8 animate-spin stroke-[2.5]" />
             </div>
-            <h2 className="text-lg font-sans font-bold text-zinc-900 dark:text-white">Transaction Pending</h2>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto">
-              Your payment is being verified by the administrator. Please wait. You will be notified once complete.
-            </p>
-            <button
-              onClick={onClose}
-              className="text-xs text-zinc-400 hover:text-zinc-650 hover:underline cursor-pointer"
-            >
-              Close
-            </button>
+            
+            <div className="space-y-1.5">
+              <h2 className="text-xl font-sans font-black text-zinc-900 dark:text-white uppercase tracking-tight">Transaction Pending</h2>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto leading-relaxed">
+                Thank you! Your payment verification proof has been transmitted and is now awaiting administrator review.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-150 dark:border-zinc-850 text-left space-y-2.5 text-xs font-sans">
+              <div className="flex justify-between border-b border-zinc-100 dark:border-zinc-900/60 pb-1.5 font-mono text-[10px] uppercase text-zinc-400">
+                <span>Verification Receipt</span>
+                <span className="text-amber-500 font-bold">Awaiting Audit</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-500">Receiver Email:</span>
+                <span className="font-semibold text-zinc-850 dark:text-white">mrflop786@gmail.com</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-500">Sender Email:</span>
+                <span className="font-mono text-zinc-850 dark:text-white truncate max-w-[190px]">{email}</span>
+              </div>
+              {paymentMethod !== 'card' && clientWalletId && (
+                <div className="flex justify-between">
+                  <span className="text-zinc-500">Sender Wallet/Account:</span>
+                  <span className="font-mono text-zinc-850 dark:text-white truncate max-w-[190px]">{clientWalletId}</span>
+                </div>
+              )}
+              {paymentMethod !== 'card' && transactionId && (
+                <div className="flex justify-between">
+                  <span className="text-zinc-500">Transaction ID:</span>
+                  <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 truncate max-w-[195px] select-all">{transactionId}</span>
+                </div>
+              )}
+              <div className="flex justify-between pt-1.5 border-t border-zinc-100 dark:border-zinc-900/60 font-bold">
+                <span className="text-zinc-900 dark:text-zinc-200 font-sans">Total Transferred:</span>
+                <span className="text-indigo-600 dark:text-indigo-400 font-mono">
+                  {paymentMethod === 'card' ? `$${actualAmountDue}` : `Rs. ${actualAmountDue * 300}`}
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-amber-500/5 border border-amber-500/10 p-3.5 rounded-xl text-left text-[11px] text-amber-600 dark:text-amber-400/95 leading-relaxed font-sans">
+              🔒 <strong>Escrow Guarantee:</strong> Admins review and match transaction proofs dynamically. Typical confirmation of the source file download unlocks takes between 5 to 15 minutes. Once checked, the dynamic downloads will instantly unlock on your dashboard registers.
+            </div>
+
+            <div className="pt-2 border-t border-zinc-150 dark:border-zinc-900 flex flex-col gap-2">
+              <button
+                onClick={() => {
+                  onClose();
+                  // Open dashboard where products they purchased can be monitored
+                  const dashboardTrig = document.getElementById('user-dashboard-trigger');
+                  if (dashboardTrig) dashboardTrig.click();
+                }}
+                className="w-full py-2.5 bg-zinc-950 hover:bg-zinc-850 dark:bg-white dark:text-zinc-950 font-sans font-bold text-xs sm:text-sm rounded-xl cursor-pointer transition-all"
+              >
+                Go to Dashboard
+              </button>
+              <button
+                onClick={onClose}
+                className="text-xs text-zinc-400 hover:text-zinc-650 dark:hover:text-zinc-200 hover:underline cursor-pointer py-1.5"
+              >
+                Return to Assets Catalogue
+              </button>
+            </div>
           </div>
         ) : (
           /* SUCCESS STATE PANEL */
