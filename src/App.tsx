@@ -44,10 +44,6 @@ const CIRCLE_CATEGORIES = [
   { name: 'Web Templates', image: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&q=80&w=150&h=150' },
   { name: 'UI Kits', image: 'https://images.unsplash.com/photo-1541462608143-67571c6738dd?auto=format&fit=crop&q=80&w=150&h=150' },
   { name: 'Scripts', image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=150&h=150' },
-  { name: 'Plugins', image: 'https://images.unsplash.com/photo-1639322537228-f710d846310a?auto=format&fit=crop&q=80&w=150&h=150' },
-  { name: 'Graphics', image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=150&h=150' },
-  { name: 'SaaS Tools', image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=150&h=150' },
-  { name: 'AI Prompts', image: 'https://images.unsplash.com/photo-1675557009875-436f09780264?auto=format&fit=crop&q=80&w=150&h=150' },
   { name: 'Downloads', image: 'https://images.unsplash.com/photo-1618005198143-e5283b519a7f?auto=format&fit=crop&q=80&w=150&h=150', isDownload: true }
 ];
 
@@ -1040,44 +1036,6 @@ export default function App() {
                 </span>
                 <span className="text-[11px] font-mono tracking-widest text-indigo-600 dark:text-indigo-300 uppercase font-bold">Featured Spotlight</span>
               </div>
-              
-              {/* Glass Slider navigation dot indicators & high-contrast Lucide Chevron controls */}
-              <div id="spotlight-navigator" className="flex items-center gap-2 self-end sm:self-auto relative z-20">
-                <button
-                  id="spotlight-prev-arrow"
-                  onClick={() => setSpotlightIndex((prev) => (prev === 0 ? spotlightProducts.length - 1 : prev - 1))}
-                  className="w-8 h-8 rounded-full bg-zinc-200/60 hover:bg-zinc-300/80 dark:bg-white/5 dark:hover:bg-white/10 text-zinc-800 dark:text-zinc-100 flex items-center justify-center border border-zinc-300/30 dark:border-white/5 transition-all active:scale-90 cursor-pointer shadow-sm"
-                  title="Previous Spotlight Asset"
-                  aria-label="Previous Spotlight slide"
-                >
-                  <ChevronLeft className="w-4.5 h-4.5" />
-                </button>
-
-                <div className="flex items-center gap-1.5 bg-zinc-200/40 dark:bg-white/5 py-1.5 px-2.5 rounded-full border border-zinc-300/30 dark:border-white/5">
-                  {spotlightProducts.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setSpotlightIndex(idx)}
-                      className={`h-2.5 rounded-full transition-all duration-350 cursor-pointer ${
-                        spotlightIndex === idx 
-                          ? 'w-6 bg-indigo-600 dark:bg-indigo-400' 
-                          : 'w-2.5 bg-zinc-400/40 dark:bg-white/10 hover:bg-zinc-400/60 dark:hover:bg-white/20'
-                      }`}
-                      aria-label={`Slide ${idx + 1}`}
-                    />
-                  ))}
-                </div>
-
-                <button
-                  id="spotlight-next-arrow"
-                  onClick={() => setSpotlightIndex((prev) => (prev + 1) % spotlightProducts.length)}
-                  className="w-8 h-8 rounded-full bg-zinc-200/60 hover:bg-zinc-300/80 dark:bg-white/5 dark:hover:bg-white/10 text-zinc-800 dark:text-zinc-100 flex items-center justify-center border border-zinc-300/30 dark:border-white/5 transition-all active:scale-90 cursor-pointer shadow-sm"
-                  title="Next Spotlight Asset"
-                  aria-label="Next Spotlight slide"
-                >
-                  <ChevronRight className="w-4.5 h-4.5" />
-                </button>
-              </div>
             </div>
 
             {/* Sliding Container with slide & crossfade effect */}
@@ -1163,6 +1121,44 @@ export default function App() {
                   </div>
                 </motion.div>
               </AnimatePresence>
+            </div>
+
+            {/* Centered Spotlight Navigator arrows and dots at the bottom ("nicha") */}
+            <div id="spotlight-navigator" className="flex items-center justify-center gap-3 mt-6 pb-2 relative z-20 select-none">
+              <button
+                id="spotlight-prev-arrow"
+                onClick={() => setSpotlightIndex((prev) => (prev === 0 ? spotlightProducts.length - 1 : prev - 1))}
+                className="w-9 h-9 rounded-full bg-zinc-200/60 hover:bg-zinc-300/85 dark:bg-white/5 dark:hover:bg-white/10 text-zinc-900 dark:text-zinc-100 flex items-center justify-center border border-zinc-300/30 dark:border-white/5 transition-all active:scale-90 cursor-pointer shadow-sm"
+                title="Previous Spotlight Asset"
+                aria-label="Previous Spotlight slide"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-1.5 bg-zinc-200/40 dark:bg-white/5 py-2 px-3.5 rounded-full border border-zinc-300/30 dark:border-white/5">
+                {spotlightProducts.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSpotlightIndex(idx)}
+                    className={`h-2.5 rounded-full transition-all duration-350 cursor-pointer ${
+                      spotlightIndex === idx 
+                        ? 'w-6 bg-indigo-650 dark:bg-indigo-400' 
+                        : 'w-2.5 bg-zinc-400/40 dark:bg-white/10 hover:bg-zinc-400/60 dark:hover:bg-white/20'
+                    }`}
+                    aria-label={`Slide ${idx + 1}`}
+                  />
+                ))}
+              </div>
+
+              <button
+                id="spotlight-next-arrow"
+                onClick={() => setSpotlightIndex((prev) => (prev + 1) % spotlightProducts.length)}
+                className="w-9 h-9 rounded-full bg-zinc-200/60 hover:bg-zinc-300/85 dark:bg-white/5 dark:hover:bg-white/10 text-zinc-900 dark:text-zinc-100 flex items-center justify-center border border-zinc-300/30 dark:border-white/5 transition-all active:scale-90 cursor-pointer shadow-sm"
+                title="Next Spotlight Asset"
+                aria-label="Next Spotlight slide"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
             </div>
           </div>
         )}
