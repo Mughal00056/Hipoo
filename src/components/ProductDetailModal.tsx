@@ -13,7 +13,8 @@ import {
   ExternalLink,
   MessageSquare,
   Sparkles,
-  Award
+  Award,
+  ShoppingBag
 } from 'lucide-react';
 import { Product, Review, UserProfile } from '../types';
 
@@ -47,10 +48,9 @@ export default function ProductDetailModal({
   const [reviewError, setReviewError] = useState<string>('');
   const [reviewSuccess, setReviewSuccess] = useState<boolean>(false);
 
+  const [isPaymentInitiated, setIsPaymentInitiated] = useState<boolean>(false);
   // Custom User Personalisation and Order inputs
   const [quantity, setQuantity] = useState<number>(1);
-  const [referenceFile, setReferenceFile] = useState<File | null>(null);
-  const [referenceFilePreview, setReferenceFilePreview] = useState<string>('');
   const [imageUrl, setImageUrl] = useState<string>('https://example.com/image.jpg');
   const [personalisationText, setPersonalisationText] = useState<string>('CONQUEROR RANK PUSH');
   const [contactNumber, setContactNumber] = useState<string>('+923001234567');
@@ -229,20 +229,7 @@ export default function ProductDetailModal({
                     </div>
                   )}
 
-                  {/* Bullet Highlights */}
-                  <div>
-                    <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-400 mb-3">Key Product Features</h4>
-                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      {product.features.map((feat, idx) => (
-                        <li key={idx} className="flex gap-2.5 text-xs sm:text-sm text-zinc-700 dark:text-zinc-300">
-                          <div className="p-0.5 mt-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                            <Check className="w-3.5 h-3.5 stroke-[3]" />
-                          </div>
-                          <span>{feat}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+
 
                   {/* PRODUCT DETAILS CUSTOMIZATION FORM */}
                   <div className="border-t border-zinc-200 dark:border-zinc-800/80 pt-6 space-y-4">
@@ -277,49 +264,7 @@ export default function ProductDetailModal({
                         </div>
                       </div>
 
-                      {/* Choose file upload reference photo */}
-                      <div>
-                        <span className="text-[10px] text-zinc-500 uppercase block font-mono mb-1.5">Upload Reference Photo</span>
-                        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-                          <label className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-zinc-300 dark:border-zinc-805 hover:border-indigo-505 dark:hover:border-indigo-500 rounded-2xl p-4 bg-white dark:bg-zinc-950 transition-colors cursor-pointer group">
-                            <input
-                              type="file"
-                              accept=".jpg,.jpeg,.png,.webp"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  setReferenceFile(file);
-                                  const reader = new FileReader();
-                                  reader.onloadend = () => {
-                                    setReferenceFilePreview(reader.result as string);
-                                  };
-                                  reader.readAsDataURL(file);
-                                }
-                              }}
-                              className="hidden"
-                            />
-                            <span className="text-xs bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-850 text-zinc-800 dark:text-zinc-200 font-bold px-3.5 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 select-none transition-colors">
-                              Choose File
-                            </span>
-                            <span className="text-[9px] text-zinc-400 mt-2 text-center group-hover:text-zinc-650 dark:group-hover:text-zinc-200 font-mono">
-                              (JPG, PNG, WEBP) • {referenceFile ? referenceFile.name : "Select or drag file"}
-                            </span>
-                          </label>
 
-                          {referenceFilePreview && (
-                            <div className="w-20 h-20 rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shrink-0 bg-zinc-100 dark:bg-zinc-950 relative group">
-                              <img src={referenceFilePreview} className="w-full h-full object-cover" alt="Custom reference preview" />
-                              <button
-                                type="button"
-                                onClick={() => { setReferenceFile(null); setReferenceFilePreview(''); }}
-                                className="absolute inset-0 bg-red-650/80 text-white text-[10px] font-mono font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                CLEAR
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
 
                       {/* Image URL Input */}
                       <div>
@@ -429,6 +374,7 @@ export default function ProductDetailModal({
                             setOrderId(`#AV-${randomIdNum}`);
                             setCountdown(120); // reset counting
                             setOrderStatus('Pending Verification');
+                            setIsPaymentInitiated(true);
                             // Trigger actual underlying purchase/checkout logic
                             onBuyNow({
                               ...product,
@@ -570,8 +516,21 @@ export default function ProductDetailModal({
             {/* Sticky/Side Action Panel */}
             <div className="space-y-6 lg:border-l lg:border-zinc-150 lg:dark:border-zinc-900 lg:pl-6">
               
-              {/* LIVE VERIFICATION CARD */}
-              <div className="rounded-3xl p-5 border border-amber-500/20 bg-amber-500/5 dark:bg-amber-500/5 backdrop-blur-md relative overflow-hidden space-y-4">
+              {!isPaymentInitiated ? (
+                <div className="rounded-3xl p-6 border-2 border-dashed border-zinc-200 dark:border-zinc-800 text-center py-10 space-y-4 bg-zinc-50/30 dark:bg-zinc-950/20 backdrop-blur-xs select-none">
+                  <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                    <ShoppingBag className="w-5 h-5 animate-pulse" />
+                  </div>
+                  <div className="space-y-1">
+                    <h5 className="text-xs font-mono font-black uppercase tracking-wider text-zinc-900 dark:text-white">Active Custom Workspace</h5>
+                    <p className="text-[10px] text-zinc-400 dark:text-zinc-550 max-w-[220px] mx-auto leading-relaxed">
+                      Please customize your product specifications below and click <strong className="text-indigo-650 dark:text-indigo-400">Buy Now</strong> to unlock the Live Real-time Verification Desk.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                /* LIVE VERIFICATION CARD */
+                <div className="rounded-3xl p-5 border border-amber-500/20 bg-amber-500/5 dark:bg-amber-500/5 backdrop-blur-md relative overflow-hidden space-y-4">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
                 
                 <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-3">
@@ -616,10 +575,10 @@ export default function ProductDetailModal({
 
                   {/* Uploaded Image Preview */}
                   <div>
-                    <span className="text-[10px] text-zinc-450 dark:text-zinc-500 uppercase block font-mono mb-1.5">Uploaded Image</span>
+                    <span className="text-[10px] text-zinc-455 dark:text-zinc-500 uppercase block font-mono mb-1.5">Reference Image</span>
                     <div className="h-28 w-full rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800/80 bg-zinc-100 dark:bg-zinc-950 relative group">
                       <img 
-                        src={referenceFilePreview || imageUrl || product.previewImage} 
+                        src={imageUrl || product.previewImage} 
                         className="w-full h-full object-cover select-none pointer-events-none transition-transform duration-300 group-hover:scale-105" 
                         alt="Sandbox Upload Preview" 
                       />
@@ -665,6 +624,7 @@ export default function ProductDetailModal({
                   </div>
                 </div>
               </div>
+              )}
 
               {/* Standard action parameters in owned products style */}
               {isPurchased && (

@@ -152,6 +152,31 @@ export default function App() {
   }
   const [uploadingAsset, setUploadingAsset] = useState<UploadingAsset | null>(null);
 
+  // Mouse drag horizontal scroll for categories
+  const categoriesRef = useRef<HTMLDivElement | null>(null);
+  const [isCatDragActive, setIsCatDragActive] = useState(false);
+  const [catStartX, setCatStartX] = useState(0);
+  const [catScrollLeft, setCatScrollLeft] = useState(0);
+
+  const handleCatMouseDown = (e: React.MouseEvent) => {
+    if (!categoriesRef.current) return;
+    setIsCatDragActive(true);
+    setCatStartX(e.pageX - categoriesRef.current.offsetLeft);
+    setCatScrollLeft(categoriesRef.current.scrollLeft);
+  };
+
+  const handleCatMouseLeaveOrUp = () => {
+    setIsCatDragActive(false);
+  };
+
+  const handleCatMouseMove = (e: React.MouseEvent) => {
+    if (!isCatDragActive || !categoriesRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - categoriesRef.current.offsetLeft;
+    const walk = (x - catStartX) * 1.5; // speed multiplier
+    categoriesRef.current.scrollLeft = catScrollLeft - walk;
+  };
+
   // Search & Filter state variables
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeCategory, setActiveCategory] = useState<string>('All');
@@ -1043,11 +1068,22 @@ export default function App() {
               <AnimatePresence mode="wait">
                 <motion.div
                   key={spotlightIndex}
-                  initial={{ opacity: 0, y: 10, filter: "blur(6px)" }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, y: -10, filter: "blur(6px)" }}
-                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                  className="w-full grid grid-cols-1 md:grid-cols-12 gap-5 md:gap-8 items-center"
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.25}
+                  onDragEnd={(e, info) => {
+                    const swipeThreshold = 50;
+                    if (info.offset.x < -swipeThreshold) {
+                      setSpotlightIndex((prev) => (prev + 1) % spotlightProducts.length);
+                    } else if (info.offset.x > swipeThreshold) {
+                      setSpotlightIndex((prev) => (prev === 0 ? spotlightProducts.length - 1 : prev - 1));
+                    }
+                  }}
+                  initial={{ opacity: 0, x: 80, filter: "blur(4px)" }}
+                  animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, x: -80, filter: "blur(4px)" }}
+                  transition={{ duration: 0.35, ease: [0.25, 1, 0.5, 1] }}
+                  className="w-full grid grid-cols-1 md:grid-cols-12 gap-5 md:gap-8 items-center cursor-grab active:cursor-grabbing select-none"
                 >
                   {/* Left Column for product image preview */}
                   <div className="col-span-1 md:col-span-4 lg:col-span-4 relative group w-full max-w-md mx-auto md:max-w-none">
@@ -1175,7 +1211,14 @@ export default function App() {
                 <Compass className="w-3.5 h-3.5 text-indigo-400 animate-spin-slow" />
                 <span>Explore Categories & Downloads</span>
               </div>
-              <div className="flex gap-4 sm:gap-6 pb-2 overflow-x-auto scrollbar-none snap-x items-center px-1">
+              <div
+                ref={categoriesRef}
+                onMouseDown={handleCatMouseDown}
+                onMouseLeave={handleCatMouseLeaveOrUp}
+                onMouseUp={handleCatMouseLeaveOrUp}
+                onMouseMove={handleCatMouseMove}
+                className="flex gap-4 sm:gap-6 pb-2 overflow-x-auto scrollbar-none snap-x items-center px-1 cursor-grab active:cursor-grabbing select-none"
+              >
                 {CIRCLE_CATEGORIES.map((circle) => {
                   const isActive = activeCategory === circle.name;
                   return (
@@ -1836,6 +1879,30 @@ export default function App() {
 
                         <form onSubmit={handleCustomLogoSubmit} className="space-y-3.5">
                           <div>
+                            <label className="block text-[10px] font-mono text-emerald-600 dark:text-emerald-400 tracking-wide uppercase mb-1">Logo Name / Text</label>
+                            <input
+                              type="text"
+                              required
+                              value={logoTitle}
+                              onChange={(e) => setLogoTitle(e.target.value)}
+                              placeholder="e.g. Conqueror Apex Wordmark"
+                              className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-805 rounded-xl outline-none focus:border-emerald-500 text-zinc-900 dark:text-white transition-colors"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-mono text-emerald-600 dark:text-emerald-400 tracking-wide uppercase mb-1">Short Description</label>
+                            <input
+                              type="text"
+                              required
+                              value={logoShortDesc}
+                              onChange={(e) => setLogoShortDesc(e.target.value)}
+                              placeholder="e.g. Modern geometric shield and dynamic lines vector logo"
+                              className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-805 rounded-xl outline-none focus:border-emerald-500 text-zinc-900 dark:text-white transition-colors"
+                            />
+                          </div>
+
+                          <div>
                             <label className="block text-[10px] font-mono text-emerald-600 dark:text-emerald-400 tracking-wide uppercase mb-1">Logo Image Preview URL</label>
                             <input
                               type="url"
@@ -1843,6 +1910,18 @@ export default function App() {
                               value={logoPreviewImage}
                               onChange={(e) => setLogoPreviewImage(e.target.value)}
                               placeholder="https://images.unsplash.com/photo-..."
+                              className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-805 rounded-xl outline-none focus:border-emerald-500 text-zinc-900 dark:text-white transition-colors"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-mono text-emerald-600 dark:text-emerald-400 tracking-wide uppercase mb-1">Source Vector Download URL</label>
+                            <input
+                              type="url"
+                              required
+                              value={logoDownloadUrl}
+                              onChange={(e) => setLogoDownloadUrl(e.target.value)}
+                              placeholder="https://drive.google.com/drive/folders/..."
                               className="w-full text-xs p-2.5 bg-white dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-805 rounded-xl outline-none focus:border-emerald-500 text-zinc-900 dark:text-white transition-colors"
                             />
                           </div>
