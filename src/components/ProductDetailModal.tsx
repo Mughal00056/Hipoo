@@ -48,6 +48,7 @@ export default function ProductDetailModal({
   const [reviewError, setReviewError] = useState<string>('');
   const [reviewSuccess, setReviewSuccess] = useState<boolean>(false);
 
+  const [checkoutStep, setCheckoutStep] = useState<'details' | 'payment' | 'verification'>('details');
   const [isPaymentInitiated, setIsPaymentInitiated] = useState<boolean>(false);
   // Custom User Personalisation and Order inputs
   const [quantity, setQuantity] = useState<number>(1);
@@ -139,8 +140,10 @@ export default function ProductDetailModal({
         </div>
 
         {/* Modal Scroll area */}
-        <div className="overflow-y-auto flex-1">
-          {/* Main top visual banner */}
+        <div className="overflow-y-auto flex-1 flex flex-col">
+          {checkoutStep === 'details' ? (
+            <>
+              {/* Main top visual banner */}
           <div 
             onClick={() => onOpenImage?.(product.previewImage)}
             className="relative aspect-[21/9] w-full bg-zinc-100 dark:bg-zinc-900 overflow-hidden cursor-zoom-in group/image"
@@ -228,9 +231,6 @@ export default function ProductDetailModal({
                       </p>
                     </div>
                   )}
-
-
-
                   {/* PRODUCT DETAILS CUSTOMIZATION FORM */}
                   <div className="border-t border-zinc-200 dark:border-zinc-800/80 pt-6 space-y-4">
                     <div className="flex items-center gap-2">
@@ -241,7 +241,7 @@ export default function ProductDetailModal({
                     <div className="bg-zinc-50 dark:bg-zinc-900/40 rounded-3xl p-4 sm:p-5 border border-zinc-200 dark:border-zinc-800/80 space-y-4">
                       {/* Title display */}
                       <div>
-                        <span className="text-[10px] text-zinc-500 uppercase block font-mono mb-1">Title</span>
+                        <span className="text-[10px] text-zinc-505 uppercase block font-mono mb-1">Title</span>
                         <div className="w-full text-xs font-sans font-bold p-3 bg-zinc-200/50 dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-850 rounded-xl text-zinc-850 dark:text-zinc-300">
                           {product.title}
                         </div>
@@ -250,56 +250,18 @@ export default function ProductDetailModal({
                       {/* Side by side Price & Delivery Time */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <span className="text-[10px] text-zinc-500 uppercase block font-mono mb-1">Price</span>
+                          <span className="text-[10px] text-zinc-550 uppercase block font-mono mb-1">Price</span>
                           <div className="w-full text-xs font-mono font-black p-3 bg-zinc-200/50 dark:bg-zinc-955 border border-zinc-205 dark:border-zinc-850 rounded-xl text-indigo-600 dark:text-indigo-400">
                             Rs {product.price === 0 ? 500 : Math.round(product.price * 140) * quantity}
                           </div>
                         </div>
 
                         <div>
-                          <span className="text-[10px] text-zinc-500 uppercase block font-mono mb-1">Delivery Time</span>
+                          <span className="text-[10px] text-zinc-550 uppercase block font-mono mb-1">Delivery Time</span>
                           <div className="w-full text-xs font-sans font-semibold p-3 bg-zinc-200/50 dark:bg-zinc-955 border border-zinc-205 dark:border-zinc-850 rounded-xl text-zinc-700 dark:text-zinc-300">
                             5 Minutes - 2 Hours
                           </div>
                         </div>
-                      </div>
-
-
-
-                      {/* Image URL Input */}
-                      <div>
-                        <span className="text-[10px] text-zinc-500 uppercase block font-mono mb-1">Image URL</span>
-                        <input
-                          type="text"
-                          value={imageUrl}
-                          onChange={(e) => setImageUrl(e.target.value)}
-                          placeholder="https://example.com/image.jpg"
-                          className="w-full text-xs p-3 bg-white dark:bg-[#040404] border border-zinc-200 dark:border-zinc-805 rounded-xl focus:border-indigo-500 outline-none text-zinc-800 dark:text-zinc-250 placeholder-zinc-400"
-                        />
-                      </div>
-
-                      {/* Personalisation Text Input */}
-                      <div>
-                        <span className="text-[10px] text-zinc-500 uppercase block font-mono mb-1">Personalisation Text</span>
-                        <input
-                          type="text"
-                          value={personalisationText}
-                          onChange={(e) => setPersonalisationText(e.target.value)}
-                          placeholder="Enter Thumbnail Text"
-                          className="w-full text-xs p-3 bg-white dark:bg-[#040404] border border-zinc-205 dark:border-zinc-805 rounded-xl focus:border-indigo-500 outline-none text-zinc-855 dark:text-zinc-150 placeholder-zinc-400 font-medium"
-                        />
-                      </div>
-
-                      {/* Contact Number Input */}
-                      <div>
-                        <span className="text-[10px] text-zinc-500 uppercase block font-mono mb-1">Contact Number</span>
-                        <input
-                          type="text"
-                          value={contactNumber}
-                          onChange={(e) => setContactNumber(e.target.value)}
-                          placeholder="+92XXXXXXXXXX"
-                          className="w-full text-xs p-3 bg-white dark:bg-[#040404] border border-zinc-205 dark:border-zinc-805 rounded-xl focus:border-indigo-500 outline-none text-zinc-855 dark:text-zinc-100 placeholder-zinc-400 font-mono"
-                        />
                       </div>
 
                       {/* Email Address Input */}
@@ -314,20 +276,8 @@ export default function ProductDetailModal({
                         />
                       </div>
 
-                      {/* Additional Instructions */}
-                      <div>
-                        <span className="text-[10px] text-zinc-500 uppercase block font-mono mb-1">Additional Instructions</span>
-                        <textarea
-                          value={additionalInstructions}
-                          onChange={(e) => setAdditionalInstructions(e.target.value)}
-                          placeholder="[ Textarea ]"
-                          rows={3}
-                          className="w-full text-xs p-3 bg-white dark:bg-[#040404] border border-zinc-205 dark:border-zinc-805 rounded-xl focus:border-indigo-500 outline-none text-zinc-855 dark:text-zinc-100 placeholder-zinc-400 leading-relaxed"
-                        />
-                      </div>
-
                       {/* Quantity adjuster */}
-                      <div className="flex items-center justify-between py-2 border-t border-zinc-200/50 dark:border-zinc-800/80 mt-1 select-none">
+                      <div className="flex items-center justify-between py-2 border-t border-zinc-200/50 dark:border-zinc-805 mt-1 select-none">
                         <span className="text-[10px] font-mono font-bold text-zinc-450 dark:text-zinc-500 uppercase tracking-widest">
                           Quantity
                         </span>
@@ -370,16 +320,11 @@ export default function ProductDetailModal({
                         <button
                           type="button"
                           onClick={() => {
-                            const randomIdNum = Math.floor(1000 + Math.random() * 9000);
-                            setOrderId(`#AV-${randomIdNum}`);
-                            setCountdown(120); // reset counting
-                            setOrderStatus('Pending Verification');
-                            setIsPaymentInitiated(true);
-                            // Trigger actual underlying purchase/checkout logic
                             onBuyNow({
                               ...product,
                               title: `${product.title} (Qty: ${quantity})`
                             });
+                            onClose();
                           }}
                           className="py-2.5 bg-indigo-600 hover:bg-indigo-500 font-sans font-black text-xs rounded-xl text-white transition-all cursor-pointer text-center active:scale-98 shadow-md shadow-indigo-550/10"
                         >
@@ -692,6 +637,360 @@ export default function ProductDetailModal({
             </div>
 
           </div>
+          </>
+          ) : (
+            <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-zinc-950 overflow-y-auto">
+              {/* Sleek Step Progress Header */}
+              <div id="secure-checkout-step-header" className="bg-zinc-50/50 dark:bg-zinc-900/40 border-b border-zinc-150 dark:border-zinc-800 p-4 shrink-0 flex items-center justify-between sm:px-8 select-none">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 bg-indigo-50 dark:bg-indigo-950/40 rounded-xl text-indigo-650 dark:text-indigo-400 border border-indigo-100/30 dark:border-indigo-500/10">
+                    <ShoppingBag className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-sans font-black uppercase text-zinc-900 dark:text-white tracking-wider">AetherVault Safe Escrow Checkout</h3>
+                    <p className="text-[10px] text-zinc-400 font-mono">DESK • STEP {checkoutStep === 'payment' ? '2 OF 3' : '3 OF 3'}</p>
+                  </div>
+                </div>
+
+                {/* Secure Step Indicators */}
+                <div className="flex items-center gap-3 font-mono text-[9px] font-black uppercase tracking-widest hidden sm:flex">
+                  <span className="text-emerald-500 flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5 stroke-[3]" /> Customize
+                  </span>
+                  <span className="text-zinc-300 dark:text-zinc-700">/</span>
+                  <span className={checkoutStep === 'payment' ? 'text-indigo-600 dark:text-indigo-400 animate-pulse font-extrabold' : 'text-emerald-500 flex items-center gap-1'}>
+                    {checkoutStep === 'payment' ? '● Transfer Payment' : '✔ Transfer Payment'}
+                  </span>
+                  <span className="text-zinc-300 dark:text-zinc-700">/</span>
+                  <span className={checkoutStep === 'verification' ? 'text-indigo-600 dark:text-indigo-400 animate-pulse font-extrabold' : 'text-zinc-450 dark:text-[#555]'}>
+                    {checkoutStep === 'verification' && '●'} Live Verification
+                  </span>
+                </div>
+              </div>
+
+              {/* Secure Checkout Desk Body */}
+              <div id="secure-checkout-body-grid" className="p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1">
+                
+                {/* LEFT COLUMN: Horizontal Product Summary Card */}
+                <div className="lg:col-span-12 xl:col-span-7 space-y-6">
+                  <div className="flex items-center gap-1.5 justify-between">
+                    <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-400">Order Specification Summary</h4>
+                    <span className="px-2 py-0.5 text-[9px] font-mono font-bold bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-900 rounded">
+                      Horizontal Layout Mode
+                    </span>
+                  </div>
+                  
+                  {/* HORIZONTAL PRODUCT VIEW CARD */}
+                  <div id="horizontal-product-card" className="bg-zinc-50 dark:bg-zinc-900/35 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all shadow-sm">
+                    <div className="flex flex-col sm:flex-row gap-5">
+                      
+                      {/* Product Preview Image (Left side) */}
+                      <div className="w-full sm:w-1/3 aspect-[4/3] rounded-2xl overflow-hidden border border-zinc-205 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-950 shrink-0 relative group">
+                        <img 
+                          src={imageUrl || product.previewImage} 
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" 
+                          alt={product.title} 
+                        />
+                        <div className="absolute top-2.5 left-2.5 px-2 py-0.5 text-[8px] font-mono font-bold bg-indigo-600 text-white rounded uppercase shadow">
+                          {product.category}
+                        </div>
+                      </div>
+
+                      {/* Product Metadata & Custom choices (Right side) */}
+                      <div className="flex-1 flex flex-col justify-between space-y-3 min-w-0 text-left">
+                        <div>
+                          <h3 className="text-base font-sans font-bold text-zinc-900 dark:text-white leading-tight truncate">
+                            {product.title}
+                          </h3>
+                          <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-mono mt-0.5 leading-none">
+                            Merchant ID: AETHER-MERCH-880
+                          </p>
+                        </div>
+
+                        {/* Specs display Grid */}
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 py-2.5 border-t border-b border-zinc-200/50 dark:border-zinc-800/40">
+                          <div>
+                            <span className="text-[8px] text-zinc-400 uppercase font-mono block">Personalisation</span>
+                            <span className="text-[11px] font-semibold text-zinc-850 dark:text-zinc-200 block truncate font-mono">
+                              "{personalisationText || "Default"}"
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[8px] text-zinc-400 uppercase font-mono block">Contact Number</span>
+                            <span className="text-[11px] font-semibold text-zinc-850 dark:text-zinc-200 block font-mono truncate">
+                              {contactNumber}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[8px] text-zinc-400 uppercase font-mono block">Delivery Slot</span>
+                            <span className="text-[11px] font-semibold text-zinc-850 dark:text-zinc-200 block font-sans truncate">
+                              Instantly (5 mins)
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[8px] text-zinc-400 uppercase font-mono block">Quantity Order</span>
+                            <span className="text-[11px] font-semibold text-zinc-850 dark:text-zinc-200 block font-mono truncate">
+                              {quantity} {quantity > 1 ? 'Units' : 'Unit'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Final Balance Cost section */}
+                        <div className="flex items-center justify-between pt-1">
+                          <span className="text-[10px] text-zinc-450 dark:text-zinc-500 font-mono uppercase tracking-widest text-left">Total Amount</span>
+                          <span className="text-base font-mono font-black text-indigo-600 dark:text-indigo-400">
+                             Rs {product.price === 0 ? 500 : Math.round(product.price * 140) * quantity}
+                          </span>
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Extra Helpful notes below horizontal card */}
+                  <div className="bg-indigo-50/10 dark:bg-indigo-950/5 border border-indigo-100/10 dark:border-indigo-500/5 p-4 rounded-2xl text-xs space-y-1.5 leading-relaxed text-left">
+                    <p className="font-semibold text-zinc-800 dark:text-zinc-205 flex items-center gap-1.5 font-sans">
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+                      <span>Security Assured Escrow Desk</span>
+                    </p>
+                    <p className="text-zinc-500 dark:text-zinc-400 text-[11px]">
+                      AetherVault's automated safe checkout escrow secures your digital deliverables. Once payment is initialized, our background worker processes verification queues in seconds.
+                    </p>
+                  </div>
+                </div>
+
+                {/* RIGHT COLUMN: Interactive step details based on payment vs verification */}
+                <div className="lg:col-span-12 xl:col-span-5 xl:border-l xl:border-zinc-200/80 xl:dark:border-zinc-800 xl:pl-6 space-y-6 text-left">
+                  
+                  {checkoutStep === 'payment' && (
+                    <div className="space-y-5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 bg-indigo-600 dark:bg-indigo-400 rounded-full animate-pulse" />
+                        <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-950 dark:text-white">PROCEED TO PAYMENT</h4>
+                      </div>
+
+                      {/* Banking Channel details card */}
+                      <div className="bg-zinc-50 dark:bg-[#060606] border border-zinc-200/85 dark:border-zinc-800 rounded-3xl p-5 space-y-4 shadow-xs">
+                        <div className="space-y-1">
+                          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-normal font-sans">
+                            Transfer the calculated sum to one of the authorized accounts below:
+                          </p>
+                        </div>
+
+                        {/* Accounts display list */}
+                        <div className="space-y-2 text-xs">
+                          <div className="p-3 bg-zinc-200/40 dark:bg-zinc-900/60 rounded-xl border border-zinc-300/30 dark:border-white/5 flex items-center justify-between">
+                            <div>
+                              <span className="text-[9px] font-mono text-zinc-400 uppercase">EasyPaisa Account</span>
+                              <p className="font-mono font-bold text-zinc-900 dark:text-white mt-0.5">0300-1234567</p>
+                            </div>
+                            <span 
+                              onClick={() => {
+                                navigator.clipboard.writeText('03001234567');
+                                alert('EasyPaisa Account Number Copied!');
+                              }}
+                              className="text-[9px] font-mono text-indigo-650 bg-indigo-50/70 dark:bg-indigo-950/40 py-1 px-2.5 rounded border border-indigo-100/30 dark:border-indigo-500/10 font-bold uppercase cursor-pointer hover:bg-indigo-100 dark:hover:bg-indigo-900 transition-colors"
+                            >
+                              Copy
+                            </span>
+                          </div>
+
+                          <div className="p-3 bg-zinc-200/40 dark:bg-zinc-900/60 rounded-xl border border-zinc-300/30 dark:border-white/5 flex items-center justify-between">
+                            <div>
+                              <span className="text-[9px] font-mono text-zinc-400 uppercase">JazzCash Account</span>
+                              <p className="font-mono font-bold text-zinc-900 dark:text-white mt-0.5">0315-7654321</p>
+                            </div>
+                            <span 
+                              onClick={() => {
+                                navigator.clipboard.writeText('03157654321');
+                                alert('JazzCash Account Number Copied!');
+                              }}
+                              className="text-[9px] font-mono text-indigo-655 bg-indigo-50/70 dark:bg-indigo-955/40 py-1 px-2.5 rounded border border-indigo-100/30 dark:border-indigo-500/10 font-bold uppercase cursor-pointer hover:bg-indigo-105 dark:hover:bg-indigo-900 transition-colors"
+                            >
+                              Copy
+                            </span>
+                          </div>
+
+                          <div className="p-3 bg-zinc-200/40 dark:bg-zinc-900/60 rounded-xl border border-zinc-300/30 dark:border-white/5 flex items-center justify-between">
+                            <div>
+                              <span className="text-[9px] font-mono text-zinc-400 uppercase">Allied Bank Private Escrow</span>
+                              <p className="font-mono font-bold text-zinc-900 dark:text-white mt-0.5">1234-5678-9101-1121</p>
+                            </div>
+                            <span 
+                              onClick={() => {
+                                navigator.clipboard.writeText('1234567891011121');
+                                alert('Allied Bank Account Number Copied!');
+                              }}
+                              className="text-[9px] font-mono text-indigo-655 bg-indigo-50/70 dark:bg-indigo-955/40 py-1 px-2.5 rounded border border-indigo-100/30 dark:border-indigo-500/10 font-bold uppercase cursor-pointer hover:bg-indigo-105 dark:hover:bg-indigo-900 transition-colors"
+                            >
+                              Copy
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Transaction submission info */}
+                        <div className="pt-2 border-t border-zinc-200/50 dark:border-zinc-800/80 space-y-3">
+                          <div>
+                            <label className="block text-[10px] font-mono text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-1">YOUR PAYMENT SENDER NAME</label>
+                            <input 
+                              type="text"
+                              defaultValue={user.name || "Aether Depositor"}
+                              placeholder="e.g. Ali Ahmed, Robert Dev"
+                              className="w-full text-xs p-2.5 bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-zinc-800 rounded-xl outline-none focus:border-indigo-505 text-zinc-800 dark:text-zinc-200 font-mono"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-mono text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-1">TRANSACTION TRANSFER ID (TID)</label>
+                            <input 
+                              type="text"
+                              placeholder="e.g. 5567829103 or TID-28019"
+                              className="w-full text-xs p-2.5 bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-zinc-800 rounded-xl outline-none focus:border-indigo-505 text-zinc-800 dark:text-zinc-200 font-mono"
+                            />
+                          </div>
+                        </div>
+
+                      </div>
+
+                      {/* Payment step primary buttons */}
+                      <div className="flex gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setCheckoutStep('details')}
+                          className="flex-1 py-3 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-bold rounded-xl active:scale-98 transition-all cursor-pointer font-sans text-center border border-zinc-200 dark:border-zinc-800"
+                        >
+                          Back to Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const randomIdNum = Math.floor(1000 + Math.random() * 9000);
+                            setOrderId(`#AV-${randomIdNum}`);
+                            setCountdown(120);
+                            setOrderStatus('Pending Verification');
+                            setIsPaymentInitiated(true);
+                            setCheckoutStep('verification');
+                            // Record checkout in general simulator logs
+                            onBuyNow({
+                              ...product,
+                              title: `${product.title} (Qty: ${quantity})`
+                            });
+                          }}
+                          className="flex-2 py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black rounded-xl active:scale-98 transition-all cursor-pointer font-sans shadow-md shadow-indigo-550/15 text-center uppercase tracking-wider animate-pulse"
+                        >
+                          Confirm & Proceed to Verify 🚀
+                        </button>
+                      </div>
+
+                    </div>
+                  )}
+
+                  {checkoutStep === 'verification' && (
+                    <div className="space-y-5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="relative flex h-2.5 w-2.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+                        </span>
+                        <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-950 dark:text-white">LIVE VERIFICATION DESK ACTIVE</h4>
+                      </div>
+
+                      {/* Dynamic simulation system console */}
+                      <div className="rounded-3xl p-5 border border-amber-500/20 bg-amber-500/5 dark:bg-amber-500/5 backdrop-blur-md relative overflow-hidden space-y-4">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+                        
+                        <div className="flex items-center justify-between border-b border-zinc-200/60 dark:border-zinc-800/80 pb-3">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] uppercase tracking-widest text-[#999] dark:text-zinc-400 font-bold font-mono">
+                              AV-VERIFICATION LOOP
+                            </span>
+                          </div>
+                          <span className="text-xs font-mono font-black text-indigo-650 dark:text-indigo-400 animate-pulse">
+                            ONLINE-DESK
+                          </span>
+                        </div>
+
+                        <div className="space-y-4 text-xs font-sans">
+                          {/* Order ID */}
+                          <div>
+                            <span className="text-[10px] text-zinc-400 dark:text-zinc-500 uppercase block font-mono">Order Verification ID</span>
+                            <span className="font-mono text-sm font-black text-zinc-900 dark:text-white block mt-0.5">
+                              {orderId}
+                            </span>
+                          </div>
+
+                          {/* Status */}
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <span className="text-[10px] text-zinc-400 dark:text-zinc-500 uppercase block font-mono">Verification Status</span>
+                              <span className="inline-block px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 rounded-lg text-[10px] font-mono font-black uppercase tracking-wider mt-1.5 animate-pulse">
+                                Pending Audit Verification
+                              </span>
+                            </div>
+
+                            <div className="text-right">
+                              <span className="text-[10px] text-zinc-400 dark:text-zinc-500 uppercase block font-mono">Gateway Node</span>
+                              <span className="text-[11px] text-zinc-700 dark:text-zinc-300 font-mono font-bold mt-1.5 block">PKR-E-092</span>
+                            </div>
+                          </div>
+
+                          {/* Contact target */}
+                          <div>
+                            <span className="text-[10px] text-zinc-400 dark:text-zinc-505 uppercase block font-mono">CALLBACK MOBILE NUMBER</span>
+                            <span className="font-mono font-bold text-zinc-800 dark:text-zinc-200 block mt-0.5">
+                              {contactNumber || "+92XXXXXXXXXX"}
+                            </span>
+                          </div>
+
+                          {/* Countdown clock */}
+                          <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800">
+                            <div className="flex justify-between items-center bg-zinc-150/40 dark:bg-zinc-900/60 p-2.5 rounded-xl border border-zinc-200/50 dark:border-zinc-800">
+                              <div>
+                                <span className="text-[9px] text-zinc-400 dark:text-zinc-500 uppercase block font-mono">Assigned Timeout Loop</span>
+                                <span className="font-mono text-sm font-black text-red-605 dark:text-red-400 tabular-nums">
+                                  {formatCountdown(countdown)}
+                                </span>
+                              </div>
+                              <div className="text-right">
+                                <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-ping mr-1.5" />
+                                <span className="text-[9px] font-mono font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+                                  Sync active
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Rolling Logs simulation */}
+                          <div className="bg-zinc-950/95 text-[10px] font-mono p-3 rounded-xl border border-zinc-800 text-zinc-400 leading-relaxed max-h-[110px] overflow-y-auto space-y-1">
+                            <p className="text-emerald-500">▶ INITIALIZING AV-DESK SECURE SYSTEM CLIENT_API</p>
+                            <p className="text-indigo-400">▶ CHECKING BANK DEPOSIT RECEIPT TIMELINE...</p>
+                            <p className="text-zinc-400">▶ ORDER CORRELATION MAP SUCCESS {orderId}</p>
+                            <p className="text-amber-500 animate-pulse">▶ WAITING ADMIN APPROVER INTERVENTION (EST. 5-10 MINS)</p>
+                          </div>
+
+                        </div>
+                      </div>
+
+                      {/* Go back / cancel verification */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsPaymentInitiated(false);
+                          setCheckoutStep('payment');
+                        }}
+                        className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-[#555] dark:text-zinc-350 text-xs font-semibold rounded-xl active:scale-98 transition-colors cursor-pointer text-center border border-zinc-200 dark:border-zinc-800"
+                      >
+                        Cancel & Return to Payment Desk
+                      </button>
+
+                    </div>
+                  )}
+
+                </div>
+
+              </div>
+            </div>
+          )}
         </div>
 
       </motion.div>

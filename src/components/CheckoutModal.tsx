@@ -10,7 +10,8 @@ import {
   Download, 
   Copy,
   Check,
-  ShieldAlert
+  ShieldAlert,
+  Terminal
 } from 'lucide-react';
 import { Product, CartItem, DownloadProvider } from '../types';
 
@@ -412,6 +413,21 @@ export default function CheckoutModal({
               <span>🔒 PCI-DSS Compliant Encryption Standard</span>
             </div>
 
+            <div className="pt-2.5 border-t border-zinc-150 dark:border-zinc-900/60 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  window.history.pushState({}, '', '/admin/dashboard');
+                  window.location.reload();
+                }}
+                className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-indigo-600 dark:text-indigo-400 font-sans font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 border border-indigo-500/10 cursor-pointer"
+              >
+                <Terminal className="w-4 h-4 text-indigo-500" />
+                <span>Go to Admin Portal / Dashboard</span>
+              </button>
+            </div>
+
           </form>
         ) : step === 'pending' ? (
           /* PENDING STATE PANEL */
@@ -464,7 +480,7 @@ export default function CheckoutModal({
               🔒 <strong>Escrow Guarantee:</strong> Admins review and match transaction proofs dynamically. Typical confirmation of the source file download unlocks takes between 5 to 15 minutes. Once checked, the dynamic downloads will instantly unlock on your dashboard registers.
             </div>
 
-            <div className="pt-2 border-t border-zinc-150 dark:border-zinc-900 flex flex-col gap-2">
+            <div className="pt-2 border-t border-zinc-150 dark:border-zinc-905 flex flex-col gap-2">
               <button
                 onClick={() => {
                   onClose();
@@ -476,6 +492,19 @@ export default function CheckoutModal({
               >
                 Go to Dashboard
               </button>
+
+              <button
+                onClick={() => {
+                  onClose();
+                  window.history.pushState({}, '', '/admin/dashboard');
+                  window.location.reload();
+                }}
+                className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-indigo-600 dark:text-indigo-400 font-sans font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 border border-indigo-500/10 cursor-pointer"
+              >
+                <Terminal className="w-4 h-4 text-indigo-505" />
+                <span>Go to Admin Portal / Dashboard</span>
+              </button>
+
               <button
                 onClick={onClose}
                 className="text-xs text-zinc-400 hover:text-zinc-650 dark:hover:text-zinc-200 hover:underline cursor-pointer py-1.5"
